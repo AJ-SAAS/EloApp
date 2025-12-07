@@ -1,17 +1,25 @@
-//
-//  EloAppApp.swift
-//  EloApp
-//
-//  Created by Work Laptop on 03/12/2025.
-//
-
 import SwiftUI
+import FirebaseCore
+import FirebaseAuth
 
 @main
 struct EloAppApp: App {
+    @StateObject private var authVM = AuthViewModel()
+
+    init() {
+        FirebaseApp.configure()
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Group {
+                if authVM.isSignedIn {
+                    MainTabView()
+                } else {
+                    AuthView()
+                }
+            }
+            .environmentObject(authVM)
         }
     }
 }

@@ -6,6 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		9299C5E22EE62EEA00F0A85E /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 9299C5E12EE62EEA00F0A85E /* FirebaseAuth */; };
+		9299C5E42EE62EEA00F0A85E /* FirebaseAuthCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 9299C5E32EE62EEA00F0A85E /* FirebaseAuthCombine-Community */; };
+		9299C5E62EE62EEA00F0A85E /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 9299C5E52EE62EEA00F0A85E /* FirebaseDatabase */; };
+		9299C5E82EE62EEA00F0A85E /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 9299C5E72EE62EEA00F0A85E /* FirebaseFirestore */; };
+		9299C5EA2EE62EEA00F0A85E /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 9299C5E92EE62EEA00F0A85E /* FirebaseFunctions */; };
+		9299C5EC2EE62EEA00F0A85E /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 9299C5EB2EE62EEA00F0A85E /* FirebaseStorage */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		927ABE2A2EE0417A005812CB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +61,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9299C5E62EE62EEA00F0A85E /* FirebaseDatabase in Frameworks */,
+				9299C5E82EE62EEA00F0A85E /* FirebaseFirestore in Frameworks */,
+				9299C5EA2EE62EEA00F0A85E /* FirebaseFunctions in Frameworks */,
+				9299C5E22EE62EEA00F0A85E /* FirebaseAuth in Frameworks */,
+				9299C5E42EE62EEA00F0A85E /* FirebaseAuthCombine-Community in Frameworks */,
+				9299C5EC2EE62EEA00F0A85E /* FirebaseStorage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +127,12 @@
 			);
 			name = EloApp;
 			packageProductDependencies = (
+				9299C5E12EE62EEA00F0A85E /* FirebaseAuth */,
+				9299C5E32EE62EEA00F0A85E /* FirebaseAuthCombine-Community */,
+				9299C5E52EE62EEA00F0A85E /* FirebaseDatabase */,
+				9299C5E72EE62EEA00F0A85E /* FirebaseFirestore */,
+				9299C5E92EE62EEA00F0A85E /* FirebaseFunctions */,
+				9299C5EB2EE62EEA00F0A85E /* FirebaseStorage */,
 			);
 			productName = EloApp;
 			productReference = 927ABE1C2EE04178005812CB /* EloApp.app */;
@@ -195,6 +216,9 @@
 			);
 			mainGroup = 927ABE132EE04178005812CB;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				9299C5E02EE62EE900F0A85E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 927ABE1D2EE04178005812CB /* Products */;
 			projectDirPath = "";
@@ -403,8 +427,9 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -413,12 +438,16 @@
 				PRODUCT_BUNDLE_IDENTIFIER = xyz.eloapp.EloApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -435,8 +464,9 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -445,12 +475,16 @@
 				PRODUCT_BUNDLE_IDENTIFIER = xyz.eloapp.EloApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -578,6 +612,50 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		9299C5E02EE62EE900F0A85E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9299C5E12EE62EEA00F0A85E /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9299C5E02EE62EE900F0A85E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		9299C5E32EE62EEA00F0A85E /* FirebaseAuthCombine-Community */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9299C5E02EE62EE900F0A85E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = "FirebaseAuthCombine-Community";
+		};
+		9299C5E52EE62EEA00F0A85E /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9299C5E02EE62EE900F0A85E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabase;
+		};
+		9299C5E72EE62EEA00F0A85E /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9299C5E02EE62EE900F0A85E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		9299C5E92EE62EEA00F0A85E /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9299C5E02EE62EE900F0A85E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
+		};
+		9299C5EB2EE62EEA00F0A85E /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9299C5E02EE62EE900F0A85E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 927ABE142EE04178005812CB /* Project object */;
 }
