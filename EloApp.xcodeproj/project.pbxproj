@@ -424,6 +424,8 @@
 				DEVELOPMENT_TEAM = 7ZX376GC28;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app needs the microphone so you can practice speaking the word out loud.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "This app uses on-device speech recognition to check your pronunciation.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -461,6 +463,8 @@
 				DEVELOPMENT_TEAM = 7ZX376GC28;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app needs the microphone so you can practice speaking the word out loud.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "This app uses on-device speech recognition to check your pronunciation.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

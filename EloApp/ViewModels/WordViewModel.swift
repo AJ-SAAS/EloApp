@@ -1,50 +1,51 @@
+// ViewModels/WordViewModel.swift
 import Foundation
-import AVFoundation
+import Combine
 
 @MainActor
-class DailyPracticeViewModel: ObservableObject {
-
-    @Published var attempt: Int = 1      // 1 → 2 → 3
-    @Published var isRecording = false
-    @Published var streak: Int = 0
-
-    @Published var today: DailyPractice = DailyPractice(
-        word: "Articulate",
-        sentence: "I want to articulate my ideas clearly."
-    )
-
-    private let recorder = AudioRecorderService()
-
-    // MARK: - Attempt Logic
-    func startRecording() {
-        isRecording = true
-        recorder.startRecording()
-    }
-
-    func stopRecording() {
-        isRecording = false
-
-        let savedURL = recorder.stopRecording()
-        print("🎤 Saved attempt recording:", savedURL?.lastPathComponent ?? "nil")
-
-        advanceAttempt()
-    }
-
-    private func advanceAttempt() {
-        if attempt < 3 {
-            attempt += 1
+final class WordViewModel: ObservableObject {
+    @Published var currentWord = Word.sampleWords[0]
+    @Published var currentTask = 0        // 0=word, 1=sentence, 2=memory
+    @Published var streak = UserDefaults.standard.integer(forKey: "elo_streak")
+    @Published var wordCompleted = false
+    
+    private let allWords = Word.sampleWords.shuffled()
+    
+    init() { loadTodayWord() }
+    
+    private func loadTodayWord() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let lastDate = UserDefaults.standard.object(forKey: "elo_lastDate") as? Date ?? .distantPast
+        
+        if calendar.isDate(lastDate, inSameDayAs: today),
+           let index = UserDefaults.standard.object(forKey: "elo_todayIndex") as? Int {
+            currentWord = allWords[index % allWords.count]
+            wordCompleted = UserDefaults.standard.bool(forKey: "elo_completedToday")
         } else {
-            completeDailyPractice()
+            let newIndex = UserDefaults.standard.integer(forKey: "elo_todayIndex") + 1
+            UserDefaults.standard.set(newIndex, forKey: "elo_todayIndex")
+            UserDefaults.standard.set(today, forKey: "elo_lastDate")
+            UserDefaults.standard.set(false, forKey: "elo_completedToday")
+            currentWord = allWords[newIndex % allWords.count]
+            currentTask = 0
+            wordCompleted = false
         }
     }
-
-    private func completeDailyPractice() {
-        streak += 1
-        attempt = 1   // reset for next day
+    
+    func completeTask() {
+        if currentTask < 2 {
+            currentTask += 1
+        } else {
+            wordCompleted = true
+            streak += 1
+            UserDefaults.standard.set(streak, forKey: "elo_streak")
+            UserDefaults.standard.set(true, forKey: "elo_completedToday")
+        }
     }
-
-    // MARK: - Helpers
-    var hideSentence: Bool {
-        attempt == 3
+    
+    func resetForTesting() {
+        currentTask = 0
+        wordCompleted = false
     }
 }

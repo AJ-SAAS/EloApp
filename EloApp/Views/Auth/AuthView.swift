@@ -1,3 +1,4 @@
+// Views/Auth/AuthView.swift
 import SwiftUI
 import FirebaseAuth
 
@@ -13,97 +14,88 @@ struct AuthView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                
                 Text(isCreatingAccount ? "Create Account" : "Sign In")
-                    .font(.largeTitle)
-                    .bold()
+                    .font(.largeTitle.bold())
 
-                // MARK: - Email Field
                 TextField("Email", text: $email)
                     .textFieldStyle(.roundedBorder)
                     .keyboardType(.emailAddress)
                     .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
 
-                // MARK: - Password Field
                 SecureField("Password", text: $password)
                     .textFieldStyle(.roundedBorder)
 
-                // MARK: - Confirm Password (Sign Up Only)
                 if isCreatingAccount {
                     SecureField("Confirm Password", text: $confirmPassword)
                         .textFieldStyle(.roundedBorder)
                 }
 
-                // MARK: - Error Message
                 if !errorMessage.isEmpty {
                     Text(errorMessage)
                         .foregroundColor(.red)
-                        .font(.subheadline)
+                        .font(.caption)
                 }
 
-                // MARK: - Main Button
-                Button(action: handleAction) {
-                    Text(isCreatingAccount ? "Create Account" : "Sign In")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                }
-
-                // MARK: - Switch Mode
                 Button {
-                    withAnimation {
-                        isCreatingAccount.toggle()
+                    Task { await handleAction() }   // ← THIS IS THE FIX
+                } label: {
+                    Group {
+                        if authVM.isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Text(isCreatingAccount ? "Create Account" : "Sign In")
+                        }
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                }
+                .disabled(authVM.isLoading || email.isEmpty || password.isEmpty)
+
+                Button {
+                    withAnimation { isCreatingAccount.toggle() }
                 } label: {
                     Text(isCreatingAccount ?
                          "Already have an account? Sign In" :
                          "Don't have an account? Create one")
                         .font(.subheadline)
+                        .foregroundColor(.blue)
                 }
 
                 Spacer()
             }
             .padding()
+            .navigationTitle("")
+            .navigationBarHidden(true)
         }
     }
 
-    // MARK: - Action Handler
-    private func handleAction() {
-        Task {
-            errorMessage = ""
+    @MainActor
+    private func handleAction() async {
+        errorMessage = ""
 
-            if isCreatingAccount {
-                // Validate
-                guard password == confirmPassword else {
-                    errorMessage = "Passwords do not match"
-                    return
-                }
-                guard password.count >= 6 else {
-                    errorMessage = "Password must be at least 6 characters"
-                    return
-                }
-
-                do {
-                    try await authVM.register(email: email, password: password)
-                } catch {
-                    errorMessage = error.localizedDescription
-                }
-
-            } else {
-                // Login
-                do {
-                    try await authVM.signIn(email: email, password: password)
-                } catch {
-                    errorMessage = error.localizedDescription
-                }
+        if isCreatingAccount {
+            guard password == confirmPassword else {
+                errorMessage = "Passwords do not match"
+                return
             }
+            guard password.count >= 6 else {
+                errorMessage = "Password must be at least 6 characters"
+                return
+            }
+
+            await authVM.register(email: email, password: password)
+        } else {
+            await authVM.signIn(email: email, password: password)
+        }
+
+        // Show Firebase error if failed
+        if let msg = authVM.errorMessage {
+            errorMessage = msg
         }
     }
-}
-
-#Preview {
-    AuthView()
-        .environmentObject(AuthViewModel())
 }

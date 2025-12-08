@@ -1,3 +1,4 @@
+// MainTabView.swift
 import SwiftUI
 
 struct MainTabView: View {
@@ -5,12 +6,7 @@ struct MainTabView: View {
         TabView {
             HomeView()
                 .tabItem {
-                    Label("Home", systemImage: "house.fill")
-                }
-
-            SettingsView()
-                .tabItem {
-                    Label("Settings", systemImage: "gear")
+                    Label("Today", systemImage: "flame.fill")
                 }
         }
     }
