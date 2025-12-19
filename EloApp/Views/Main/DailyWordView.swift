@@ -23,6 +23,7 @@ struct DailyWordView: View {
     
     @State private var speechSynthesizer = AVSpeechSynthesizer()
     @AppStorage("selectedVoice") private var selectedVoice: String = VoiceOption.gbFemale.rawValue
+    @AppStorage("selectedDifficulty") private var selectedDifficulty: String = "Hard" // ✅ observe changes
 
     // UI State
     @State private var spokenText = ""
@@ -178,7 +179,7 @@ struct DailyWordView: View {
                         .padding(.top, 4)
                 }
                 
-                // Mic button
+                // Mic button with permission-aware fallback
                 micButton
                     .padding(.top, 20)
                     .padding(.bottom, 60)
@@ -219,19 +220,64 @@ struct DailyWordView: View {
             speech.requestPermission()
             animatedStreak = vm.streak
             animatedXP = UserDefaults.standard.integer(forKey: "elo_totalXP")
+            
+            // Refresh daily word for current difficulty
+            vm.refreshWordsForCurrentDifficulty()
+        }
+        .onChange(of: selectedDifficulty) { _ in
+            vm.refreshWordsForCurrentDifficulty()
+            resetUI()
         }
     }
 
+    // MARK: - Permission-aware mic button
     private var micButton: some View {
-        Circle()
-            .fill(speech.isRecording ? .red : .blue)
-            .frame(width: 150, height: 150)
-            .overlay(
-                Image(systemName: "mic.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(.white)
-            )
-            .onTapGesture { handleMicTap() }
+        Group {
+            if speech.micAvailable {
+                Circle()
+                    .fill(speech.isRecording ? .red : .blue)
+                    .frame(width: 150, height: 150)
+                    .overlay(
+                        Image(systemName: "mic.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.white)
+                    )
+                    .onTapGesture { handleMicTap() }
+            } else {
+                VStack(spacing: 12) {
+                    Image(systemName: "mic.slash.fill")
+                        .font(.system(size: 40))
+                        .foregroundColor(.gray)
+
+                    Text("Microphone Disabled")
+                        .font(.headline)
+
+                    Text("Enable microphone access in Settings to practice speaking.")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+
+                    Button(action: openSystemSettings) {
+                        Text("Enable Microphone in Settings")
+                            .font(.headline.bold())
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(14)
+                    }
+                }
+                .padding()
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(20)
+            }
+        }
+    }
+
+    private func openSystemSettings() {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(url)
+        }
     }
 
     private var pronunciationButton: some View {
@@ -247,6 +293,8 @@ struct DailyWordView: View {
     }
 
     private func handleMicTap() {
+        guard speech.micAvailable else { return }
+
         if speech.isRecording {
             speech.stopRecording()
             guard !spokenText.isEmpty else { return }
@@ -267,7 +315,6 @@ struct DailyWordView: View {
         }
     }
 
-    // ✅ Updated celebrateTask
     private func celebrateTask() {
         let xp = [10, 15, 25][vm.currentTask]
         xpGained = xp
@@ -277,7 +324,6 @@ struct DailyWordView: View {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
         
-        // Show toast + floating XP immediately
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             withAnimation {
                 showToast = true
@@ -289,7 +335,6 @@ struct DailyWordView: View {
                 }
             }
 
-            // Animate XP
             let currentXP = UserDefaults.standard.integer(forKey: "elo_totalXP")
             let newXP = currentXP + xp
             UserDefaults.standard.set(newXP, forKey: "elo_totalXP")
@@ -297,7 +342,6 @@ struct DailyWordView: View {
         }
         
         if vm.currentTask < 2 {
-            // Tasks 0 & 1: extended confetti + reset after 3.5s
             showConfetti = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
                 withAnimation {
@@ -310,9 +354,7 @@ struct DailyWordView: View {
                 vm.completeTask()
             }
         } else {
-            // ✅ Final task (Memory)
             showConfetti = true
-            // Keep toast + floating XP visible until CompletionView shows
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 withAnimation {
                     showConfetti = false
@@ -324,8 +366,7 @@ struct DailyWordView: View {
                 }
             }
         }
-        
-        // Animate streak
+
         let previousStreak = animatedStreak
         let newStreak = vm.streak + (vm.currentTask == 2 ? 1 : 0)
         animateValue(from: previousStreak, to: newStreak, duration: 1.0) { animatedStreak = $0 }

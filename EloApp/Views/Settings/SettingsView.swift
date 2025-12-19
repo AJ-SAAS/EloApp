@@ -1,19 +1,35 @@
 import SwiftUI
 import FirebaseAuth
+import AVFoundation
+import Speech
+
+// ⭐️ NEW: Difficulty enum (safe, standalone)
+enum Difficulty: String, CaseIterable {
+    case easy = "Easy"
+    case medium = "Medium"
+    case hard = "Hard"
+}
 
 struct SettingsView: View {
     @EnvironmentObject var authVM: AuthViewModel
-    
+
     // MARK: - Preferences
     @AppStorage("pref_notifications") private var notificationsEnabled = true
     @AppStorage("pref_sounds") private var soundsEnabled = true
     @AppStorage("selectedVoice") private var selectedVoice: String = VoiceOption.gbFemale.rawValue
 
+    // ⭐️ NEW: Difficulty preference (defaults to current behavior = Hard)
+    @AppStorage("selectedDifficulty") private var selectedDifficulty: String = Difficulty.hard.rawValue
+
+    // MARK: - Permission State
+    @State private var micAvailable = AVAudioSession.sharedInstance().recordPermission == .granted
+    @State private var speechAvailable = SFSpeechRecognizer.authorizationStatus() == .authorized
+
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 30) {
-                    
+
                     // MARK: - Account Info
                     VStack(spacing: 8) {
                         Text("Account")
@@ -48,33 +64,43 @@ struct SettingsView: View {
                             .padding(.horizontal)
 
                         VStack(spacing: 10) {
-                            Toggle(isOn: $notificationsEnabled) {
-                                Text("Daily Notifications")
-                                    .foregroundColor(.black)
-                            }
-                            .padding()
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(14)
-                            .padding(.horizontal)
+                            Toggle("Daily Notifications", isOn: $notificationsEnabled)
+                                .padding()
+                                .background(Color.gray.opacity(0.1))
+                                .cornerRadius(14)
+                                .padding(.horizontal)
 
-                            Toggle(isOn: $soundsEnabled) {
-                                Text("Enable Sounds")
-                                    .foregroundColor(.black)
-                            }
-                            .padding()
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(14)
-                            .padding(.horizontal)
+                            Toggle("Enable Sounds", isOn: $soundsEnabled)
+                                .padding()
+                                .background(Color.gray.opacity(0.1))
+                                .cornerRadius(14)
+                                .padding(.horizontal)
 
                             // Voice Picker
                             VStack(alignment: .leading, spacing: 6) {
                                 Text("Voice")
-                                    .foregroundColor(.black)
                                     .font(.headline)
-                                
+
                                 Picker("Select Voice", selection: $selectedVoice) {
-                                    ForEach(VoiceOption.allCases, id: \.rawValue) { option in
-                                        Text(option.rawValue).tag(option.rawValue)
+                                    ForEach(VoiceOption.allCases, id: \.rawValue) {
+                                        Text($0.rawValue).tag($0.rawValue)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+                            }
+                            .padding()
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(14)
+                            .padding(.horizontal)
+
+                            // ⭐️ NEW: Difficulty Picker
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Difficulty")
+                                    .font(.headline)
+
+                                Picker("Select Difficulty", selection: $selectedDifficulty) {
+                                    ForEach(Difficulty.allCases, id: \.rawValue) {
+                                        Text($0.rawValue).tag($0.rawValue)
                                     }
                                 }
                                 .pickerStyle(.segmented)
@@ -86,6 +112,44 @@ struct SettingsView: View {
                         }
                     }
 
+                    // MARK: - Voice Access (Apple Review Friendly)
+                    VStack(spacing: 10) {
+                        Text("Voice Access")
+                            .font(.title2.bold())
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal)
+
+                        VStack(spacing: 12) {
+                            HStack {
+                                Image(systemName: "mic.fill")
+                                Text("Microphone")
+                                Spacer()
+                                statusView(isEnabled: micAvailable)
+                            }
+
+                            HStack {
+                                Image(systemName: "waveform")
+                                Text("Speech Recognition")
+                                Spacer()
+                                statusView(isEnabled: speechAvailable)
+                            }
+
+                            if !micAvailable || !speechAvailable {
+                                Button("Open Settings") {
+                                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                                        UIApplication.shared.open(url)
+                                    }
+                                }
+                                .font(.footnote.bold())
+                                .padding(.top, 6)
+                            }
+                        }
+                        .padding()
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(14)
+                        .padding(.horizontal)
+                    }
+
                     // MARK: - General
                     VStack(spacing: 8) {
                         Text("General")
@@ -94,10 +158,18 @@ struct SettingsView: View {
                             .padding(.horizontal)
 
                         VStack(spacing: 10) {
-                            SettingsRow(title: "Privacy Policy") { openLink(url: "https://your-privacy-policy.com") }
-                            SettingsRow(title: "Terms of Use") { openLink(url: "https://your-terms.com") }
-                            SettingsRow(title: "Give Feedback") { openLink(url: "mailto:feedback@yourapp.com") }
-                            SettingsRow(title: "Contact Us") { openLink(url: "mailto:support@yourapp.com") }
+                            SettingsRow(title: "Privacy Policy") {
+                                openLink(url: "https://your-privacy-policy.com")
+                            }
+                            SettingsRow(title: "Terms of Use") {
+                                openLink(url: "https://your-terms.com")
+                            }
+                            SettingsRow(title: "Give Feedback") {
+                                openLink(url: "mailto:feedback@yourapp.com")
+                            }
+                            SettingsRow(title: "Contact Us") {
+                                openLink(url: "mailto:support@yourapp.com")
+                            }
                         }
                         .padding(.horizontal)
                     }
@@ -110,38 +182,32 @@ struct SettingsView: View {
                             .padding(.horizontal)
 
                         VStack(spacing: 10) {
-                            Button(action: {
+                            Button("Delete Account") {
                                 print("Delete account tapped")
-                            }) {
-                                Text("Delete Account")
-                                    .foregroundColor(.red)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.red.opacity(0.1))
-                                    .cornerRadius(14)
                             }
+                            .foregroundColor(.red)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.red.opacity(0.1))
+                            .cornerRadius(14)
 
-                            Button(action: {
+                            Button("Restore Purchases") {
                                 print("Restore purchases tapped")
-                            }) {
-                                Text("Restore Purchases")
-                                    .foregroundColor(.blue)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.blue.opacity(0.1))
-                                    .cornerRadius(14)
                             }
+                            .foregroundColor(.blue)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue.opacity(0.1))
+                            .cornerRadius(14)
 
-                            Button(action: {
+                            Button("Sign Out") {
                                 authVM.signOut()
-                            }) {
-                                Text("Sign Out")
-                                    .foregroundColor(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.black)
-                                    .cornerRadius(14)
                             }
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.black)
+                            .cornerRadius(14)
                         }
                         .padding(.horizontal)
                     }
@@ -150,12 +216,36 @@ struct SettingsView: View {
                 }
                 .padding(.top, 20)
             }
-            .background(Color.white.edgesIgnoringSafeArea(.all))
             .navigationTitle("Settings")
+            .onAppear {
+                updatePermissions()
+                NotificationCenter.default.addObserver(
+                    forName: UIApplication.didBecomeActiveNotification,
+                    object: nil,
+                    queue: .main
+                ) { _ in
+                    updatePermissions()
+                }
+            }
         }
     }
 
     // MARK: - Helpers
+    private func updatePermissions() {
+        micAvailable = AVAudioSession.sharedInstance().recordPermission == .granted
+        speechAvailable = SFSpeechRecognizer.authorizationStatus() == .authorized
+    }
+
+    private func statusView(isEnabled: Bool) -> some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(isEnabled ? Color.green : Color.red)
+                .frame(width: 12, height: 12)
+            Text(isEnabled ? "Enabled" : "Disabled")
+                .foregroundColor(.gray)
+        }
+    }
+
     private func openLink(url: String) {
         if let link = URL(string: url) {
             UIApplication.shared.open(link)
@@ -172,7 +262,6 @@ struct SettingsRow: View {
         Button(action: action) {
             HStack {
                 Text(title)
-                    .foregroundColor(.black)
                 Spacer()
                 Image(systemName: "chevron.right")
                     .foregroundColor(.gray)
@@ -183,9 +272,3 @@ struct SettingsRow: View {
         }
     }
 }
-
-#Preview {
-    SettingsView()
-        .environmentObject(AuthViewModel())
-}
- 

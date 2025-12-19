@@ -7,6 +7,10 @@ final class SpeechService: ObservableObject {
 
     @Published var isRecording = false
 
+    // ✅ NEW
+    @Published var micAuthorized = false
+    @Published var speechAuthorized = false
+
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
     private let audioEngine = AVAudioEngine()
 
@@ -14,17 +18,35 @@ final class SpeechService: ObservableObject {
     private var recognitionTask: SFSpeechRecognitionTask?
     private var completion: ((String) -> Void)?
 
+    // MARK: - Permissions
+
     func requestPermission() {
         SFSpeechRecognizer.requestAuthorization { status in
-            print("Speech auth:", status)
+            DispatchQueue.main.async {
+                self.speechAuthorized = (status == .authorized)
+            }
         }
 
         AVAudioSession.sharedInstance().requestRecordPermission { granted in
-            print("Mic permission:", granted)
+            DispatchQueue.main.async {
+                self.micAuthorized = granted
+            }
         }
     }
 
+    // ✅ NEW
+    var micAvailable: Bool {
+        micAuthorized && speechAuthorized
+    }
+
+    // MARK: - Recording
+
     func startRecording(completion: @escaping (String) -> Void) {
+        guard micAvailable else {
+            print("❌ Mic or Speech permission not granted")
+            return
+        }
+
         self.completion = completion
 
         recognitionTask?.cancel()
