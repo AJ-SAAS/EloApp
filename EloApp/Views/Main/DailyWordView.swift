@@ -1,191 +1,388 @@
-// Views/Main/DailyWordView.swift
-// FINAL – PERFECT SPACING, NO CUT-OFF, BEAUTIFUL ON ALL DEVICES
-
 import SwiftUI
 import AVFoundation
-import Speech
+
+enum VoiceOption: String, CaseIterable {
+    case usMale = "US Male"
+    case usFemale = "US Female"
+    case gbMale = "GB Male"
+    case gbFemale = "GB Female"
+    
+    var voiceIdentifier: String {
+        switch self {
+        case .usMale: return "com.apple.ttsbundle.Fred-compact"
+        case .usFemale: return "com.apple.ttsbundle.Samantha-compact"
+        case .gbMale: return "com.apple.ttsbundle.Daniel-compact"
+        case .gbFemale: return "com.apple.ttsbundle.Karen-compact"
+        }
+    }
+}
 
 struct DailyWordView: View {
     @StateObject private var vm = WordViewModel()
     @StateObject private var speech = SpeechService()
     
+    @State private var speechSynthesizer = AVSpeechSynthesizer()
+    @AppStorage("selectedVoice") private var selectedVoice: String = VoiceOption.gbFemale.rawValue
+
+    // UI State
     @State private var spokenText = ""
+    @State private var showTryAgain = false
+    @State private var amplitude: CGFloat = 0.0
     @State private var showConfetti = false
-    @State private var isPronouncing = false
-    
-    private var targetText: String {
-        vm.currentTask == 0 ? vm.currentWord.word.lowercased() : vm.currentWord.sentence.lowercased()
-    }
-    
+    @State private var toastText: String? = nil
+    @State private var showToast = false
+    @State private var xpGained: Int = 0
+    @State private var animatedStreak: Int = 0
+    @State private var animatedXP: Int = 0
+    @State private var showFloatingXP = false
+    @State private var floatingXPText = "+0 XP"
+    @State private var floatingXPOffset: CGFloat = 0
+    @State private var showCompletion = false
+    @State private var showHint = false // ✅ hint button state
+
     private var prompt: String {
         switch vm.currentTask {
-        case 0: "Hold mic and say the word"
-        case 1: "Now say the full sentence"
-        case 2: "Final round — from memory!"
-        default: ""
+        case 0: return "Tap mic & say the word aloud"
+        case 1: return "Tap mic & say the full sentence"
+        case 2: return "Say the sentence from memory"
+        default: return ""
         }
     }
-    
+
+    private var targetText: String {
+        vm.currentTask == 0
+            ? vm.currentWord.word.lowercased()
+            : vm.currentWord.sentence.lowercased()
+    }
+
     var body: some View {
         ZStack {
             Color.white.ignoresSafeArea()
             
-            if vm.wordCompleted {
-                CompletionView(streak: vm.streak) { vm.resetForTesting() }
-            } else {
-                VStack(spacing: 0) {
-                    // TOP: Streak
-                    Text("Streak: \(vm.streak) fire")
-                        .font(.title2.bold())
-                        .foregroundColor(.orange)
-                        .padding(.top, 50)
-                    
+            VStack(spacing: 24) {
+                Spacer().frame(height: 50)
+                
+                // ✅ Top bar: Next button top-right
+                HStack {
                     Spacer()
-                    
-                    // MAIN CONTENT CARD
-                    VStack(spacing: 28) {
-                        Text(vm.currentWord.word)
-                            .font(.system(size: 58, weight: .black, design: .rounded))
-                            .foregroundColor(.black)
-                            .minimumScaleFactor(0.7)
-                            .lineLimit(1)
-                        
-                        // PRONUNCIATION BUTTON
-                        Button {
-                            withAnimation { isPronouncing = true }
-                            speak(vm.currentWord.word + ". " + vm.currentWord.sentence)
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                                withAnimation { isPronouncing = false }
-                            }
-                        } label: {
-                            HStack(spacing: 12) {
-                                Image(systemName: "speaker.wave.2.fill")
-                                    .font(.title3)
-                                    .foregroundColor(.blue)
-                                Text(vm.currentWord.pronunciation)
-                                    .font(.title2)
-                                    .foregroundColor(.gray)
-                            }
-                            .padding(.horizontal, 26)
-                            .padding(.vertical, 15)
-                            .background(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color.blue.opacity(0.08))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .stroke(Color.blue.opacity(0.4), lineWidth: 2)
-                                    )
+                    Button(action: {
+                        vm.nextWord()
+                        resetUI()
+                    }) {
+                        Text("Next")
+                            .font(.headline.bold())
+                            .foregroundColor(.blue)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(Color.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.blue, lineWidth: 2)
                             )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .scaleEffect(isPronouncing ? 0.94 : 1.0)
-                        .animation(.spring(response: 0.3), value: isPronouncing)
-                        
-                        // DEFINITION + SENTENCE (no more cut-off!)
-                        if vm.currentTask < 2 {
-                            VStack(spacing: 16) {
-                                Text(vm.currentWord.definition)
-                                    .font(.title3)
-                                    .foregroundColor(.black.opacity(0.85))
-                                    .multilineTextAlignment(.center)
-                                    .lineLimit(nil)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                
-                                Text("“\(vm.currentWord.sentence)”")
-                                    .font(.title3)
-                                    .italic()
-                                    .foregroundColor(.gray)
-                                    .multilineTextAlignment(.center)
-                                    .lineLimit(nil)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                    .padding(.horizontal, 30)
-                            }
-                            .padding(.horizontal, 30)
-                        }
                     }
-                    .padding(.horizontal, 20)
-                    
-                    Spacer()
-                        .frame(height: 30)
-                    
-                    // PROGRESS DOTS
-                    HStack(spacing: 22) {
-                        ForEach(0..<3) { i in
-                            Circle()
-                                .fill(i <= vm.currentTask ? Color.green : Color.gray.opacity(0.3))
-                                .frame(width: 34, height: 34)
-                        }
-                    }
-                    
-                    // PROMPT
-                    Text(prompt)
-                        .font(.title2.bold())
-                        .foregroundColor(.black.opacity(0.8))
+                }
+                .padding(.horizontal)
+                
+                // ✅ Streak / XP centered
+                VStack(spacing: 4) {
+                    Text("🔥 Streak: \(animatedStreak)")
+                        .font(.headline.bold())
+                        .foregroundColor(.orange)
+                        .frame(maxWidth: .infinity)
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 50)
-                        .padding(.top, 20)
-                        .padding(.bottom, 30)
-                    
-                    // MIC BUTTON – perfectly centered, never touches tab bar
-                    Circle()
-                        .fill(spokenText.contains(targetText) ? Color.green : Color(red: 0.4, green: 0.8, blue: 1.0))
-                        .frame(width: 160, height: 160)
-                        .overlay(
-                            Image(systemName: "mic.fill")
-                                .font(.system(size: 70, weight: .bold))
-                                .foregroundColor(.white)
-                        )
-                        .shadow(color: .blue.opacity(0.3), radius: 14, x: 0, y: 10)
-                        .scaleEffect(speech.isRecording ? 1.15 : 1.0)
-                        .animation(.spring(response: 0.35), value: speech.isRecording)
-                        .gesture(
-                            LongPressGesture(minimumDuration: 60)
-                                .onChanged { _ in
-                                    speech.startRecording { text in
-                                        let cleanSpoken = text.lowercased()
-                                            .replacingOccurrences(of: "[^a-z ]", with: "", options: .regularExpression)
-                                        let cleanTarget = targetText.replacingOccurrences(of: "[^a-z ]", with: "", options: .regularExpression)
-                                        
-                                        if cleanSpoken.contains(cleanTarget) &&
-                                           cleanSpoken.count > Int(Double(cleanTarget.count) * 0.6) {
-                                            UINotificationFeedbackGenerator().notificationOccurred(.success)
-                                            withAnimation { vm.completeTask() }
-                                            if vm.currentTask == 2 { showConfetti = true }
-                                        }
-                                    }
-                                }
-                                .onEnded { _ in
-                                    speech.stopRecording()
-                                    spokenText = ""
-                                }
-                        )
-                    
-                    // Safe area buffer so mic never touches tab bar
-                    Spacer()
-                        .frame(height: 100)
+                    Text("XP: \(animatedXP)")
+                        .font(.headline.bold())
+                        .foregroundColor(.green)
+                        .frame(maxWidth: .infinity)
+                        .multilineTextAlignment(.center)
+                }
+                
+                // Word of the day
+                Text(vm.currentWord.word)
+                    .font(.system(size: 72, weight: .bold))
+                    .minimumScaleFactor(0.5)
+                    .lineLimit(1)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                
+                // Definition
+                Text("Definition: \(vm.currentWord.definition)")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                
+                // Pronunciation button
+                pronunciationButton
+                    .padding(.top, 4)
+                    .padding(.bottom, 4)
+                
+                // ✅ Sentence box / Hint for memory task
+                VStack {
+                    if vm.currentTask == 2 && !showHint {
+                        Button(action: { showHint.toggle() }) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "lightbulb")
+                                Text("Show Hint")
+                            }
+                            .font(.subheadline.bold())
+                            .padding()
+                            .background(Color.yellow.opacity(0.2))
+                            .cornerRadius(12)
+                        }
+                    } else {
+                        ScrollView { // dynamic height
+                            Text("“\(vm.currentWord.sentence)”")
+                                .font(.title2)
+                                .italic()
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 16)
+                        }
+                        .frame(minHeight: 100)
+                    }
+                }
+                .padding(.horizontal)
+                
+                // Task boxes
+                HStack(spacing: 12) {
+                    TaskBox(title: "Word", isCompleted: vm.currentTask >= 0)
+                    TaskBox(title: "Sentence", isCompleted: vm.currentTask >= 1)
+                    TaskBox(title: "Memory", isCompleted: vm.currentTask >= 2)
+                }
+                
+                // Prompt or live transcription
+                if speech.isRecording {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("You said:")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .padding(.leading, 16)
+                        Text(spokenText.isEmpty ? "Listening…" : spokenText)
+                            .font(.title3)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.gray.opacity(0.12))
+                            .cornerRadius(14)
+                            .padding(.horizontal, 16)
+                    }
+                } else {
+                    Text(prompt)
+                        .font(.subheadline.bold())
+                        .foregroundColor(.blue)
+                        .padding(.top, 4)
+                }
+                
+                if showTryAgain {
+                    Text("Try again — speak clearly")
+                        .foregroundColor(.red)
+                        .padding(.top, 4)
+                }
+                
+                // Mic button
+                micButton
+                    .padding(.top, 20)
+                    .padding(.bottom, 60)
+                
+                Spacer()
+            }
+            
+            if showConfetti && vm.currentTask < 2 {
+                ConfettiView()
+            }
+            
+            if showToast, let toastText {
+                VStack {
+                    Text(toastText)
+                        .font(.headline.bold())
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 14)
+                        .background(Color.black.opacity(0.85))
+                        .foregroundColor(.white)
+                        .cornerRadius(18)
+                        .padding(.top, 180)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .animation(.easeOut, value: showToast)
                 }
             }
             
-            if showConfetti {
-                ConfettiView()
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                            showConfetti = false
-                        }
-                    }
+            // ✅ Completion page
+            if showCompletion {
+                CompletionView {
+                    showCompletion = false
+                    vm.nextWord()
+                    resetUI()
+                    showHint = false
+                }
             }
         }
         .onAppear {
             speech.requestPermission()
+            animatedStreak = vm.streak
+            animatedXP = UserDefaults.standard.integer(forKey: "elo_totalXP")
         }
     }
-    
+
+    private var micButton: some View {
+        Circle()
+            .fill(speech.isRecording ? .red : .blue)
+            .frame(width: 150, height: 150)
+            .overlay(
+                Image(systemName: "mic.fill")
+                    .font(.system(size: 60))
+                    .foregroundColor(.white)
+            )
+            .onTapGesture { handleMicTap() }
+    }
+
+    private var pronunciationButton: some View {
+        Button {
+            speak(vm.currentWord.word + ". " + vm.currentWord.sentence)
+        } label: {
+            Label(vm.currentWord.pronunciation, systemImage: "speaker.wave.2.fill")
+                .padding(.horizontal, 16)
+                .padding(.vertical, 6)
+                .background(Color.blue.opacity(0.1))
+                .cornerRadius(16)
+        }
+    }
+
+    private func handleMicTap() {
+        if speech.isRecording {
+            speech.stopRecording()
+            guard !spokenText.isEmpty else { return }
+            
+            if isMatch(spoken: spokenText) {
+                celebrateTask()
+            } else {
+                showTryAgain = true
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.error)
+            }
+        } else {
+            spokenText = ""
+            showTryAgain = false
+            speech.startRecording { text in
+                spokenText = text
+            }
+        }
+    }
+
+    // ✅ Updated celebrateTask
+    private func celebrateTask() {
+        let xp = [10, 15, 25][vm.currentTask]
+        xpGained = xp
+        let messages = ["Nice 👍", "Great job 😎", "Perfect 🎉"]
+        toastText = messages[vm.currentTask]
+        
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        
+        // Show toast + floating XP immediately
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation {
+                showToast = true
+                floatingXPText = "+\(xp) XP"
+                floatingXPOffset = 0
+                showFloatingXP = true
+                withAnimation(.easeOut(duration: 1.0)) {
+                    floatingXPOffset = -30
+                }
+            }
+
+            // Animate XP
+            let currentXP = UserDefaults.standard.integer(forKey: "elo_totalXP")
+            let newXP = currentXP + xp
+            UserDefaults.standard.set(newXP, forKey: "elo_totalXP")
+            animateValue(from: animatedXP, to: newXP, duration: 0.8) { animatedXP = $0 }
+        }
+        
+        if vm.currentTask < 2 {
+            // Tasks 0 & 1: extended confetti + reset after 3.5s
+            showConfetti = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
+                withAnimation {
+                    showToast = false
+                    showFloatingXP = false
+                    showConfetti = false
+                }
+                showHint = false
+                spokenText = ""
+                vm.completeTask()
+            }
+        } else {
+            // ✅ Final task (Memory)
+            showConfetti = true
+            // Keep toast + floating XP visible until CompletionView shows
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                withAnimation {
+                    showConfetti = false
+                    showCompletion = true
+                    showToast = false
+                    showFloatingXP = false
+                    spokenText = ""
+                    showHint = false
+                }
+            }
+        }
+        
+        // Animate streak
+        let previousStreak = animatedStreak
+        let newStreak = vm.streak + (vm.currentTask == 2 ? 1 : 0)
+        animateValue(from: previousStreak, to: newStreak, duration: 1.0) { animatedStreak = $0 }
+    }
+
     private func speak(_ text: String) {
         let utterance = AVSpeechUtterance(string: text)
+        let option = VoiceOption(rawValue: selectedVoice) ?? .gbFemale
+        utterance.voice = AVSpeechSynthesisVoice(identifier: option.voiceIdentifier)
         utterance.rate = 0.48
-        if let voice = AVSpeechSynthesisVoice(language: "en-US") {
-            utterance.voice = voice
+        speechSynthesizer.speak(utterance)
+    }
+
+    private func isMatch(spoken: String) -> Bool {
+        let cleanSpoken = spoken.lowercased().filter { $0.isLetter || $0 == " " }
+        let cleanTarget = targetText.filter { $0.isLetter || $0 == " " }
+        return cleanSpoken.contains(cleanTarget)
+    }
+
+    private func animateValue(from start: Int, to end: Int, duration: Double, update: @escaping (Int) -> Void) {
+        let steps = 30
+        let interval = duration / Double(steps)
+        let increment = max(1, (end - start) / steps)
+        var current = start
+        var stepCount = 0
+        
+        Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
+            if stepCount >= steps {
+                update(end)
+                timer.invalidate()
+            } else {
+                current += increment
+                update(min(current, end))
+                stepCount += 1
+            }
         }
-        AVSpeechSynthesizer().speak(utterance)
+    }
+
+    private func resetUI() {
+        spokenText = ""
+        showTryAgain = false
+        showHint = false
+    }
+}
+
+// MARK: - Task Box
+struct TaskBox: View {
+    let title: String
+    let isCompleted: Bool
+    
+    var body: some View {
+        Text(title)
+            .font(.subheadline.bold())
+            .foregroundColor(isCompleted ? .white : .gray)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .background(isCompleted ? Color.green : Color.gray.opacity(0.2))
+            .cornerRadius(12)
     }
 }

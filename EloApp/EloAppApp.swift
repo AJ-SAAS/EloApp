@@ -1,11 +1,19 @@
-// EloAppApp.swift
 import SwiftUI
+import Firebase
 
 @main
 struct EloAppApp: App {
+
+    @StateObject var authVM = AuthViewModel()
+
+    init() {
+        FirebaseApp.configure()
+    }
+
     var body: some Scene {
         WindowGroup {
-            MainTabView()        // Straight to your beautiful game
+            RootView()
+                .environmentObject(authVM)
         }
     }
 }

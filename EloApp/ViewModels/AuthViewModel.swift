@@ -1,8 +1,6 @@
-// ViewModels/AuthViewModel.swift
-// 100% WORKING – NO MORE CRASHES
-
 import Foundation
 import FirebaseAuth
+import FirebaseFirestore
 import Combine
 
 @MainActor
@@ -12,6 +10,7 @@ final class AuthViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     private var handle: AuthStateDidChangeListenerHandle?
+    private let db = Firestore.firestore()
 
     init() {
         startListening()
@@ -23,12 +22,21 @@ final class AuthViewModel: ObservableObject {
         }
     }
 
-    func register(email: String, password: String) async {
+    func register(email: String, password: String, displayName: String) async {
         isLoading = true
         errorMessage = nil
 
         do {
-            try await Auth.auth().createUser(withEmail: email, password: password)
+            let result = try await Auth.auth().createUser(withEmail: email, password: password)
+            let uid = result.user.uid
+
+            // Save displayName in Firestore
+            try await db.collection("users").document(uid).setData([
+                "displayName": displayName,
+                "email": email,
+                "createdAt": Timestamp()
+            ])
+
             isSignedIn = true
         } catch {
             errorMessage = error.localizedDescription

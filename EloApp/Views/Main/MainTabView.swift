@@ -1,4 +1,3 @@
-// MainTabView.swift
 import SwiftUI
 
 struct MainTabView: View {
@@ -8,6 +7,17 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Today", systemImage: "flame.fill")
                 }
+
+            SettingsView()
+                .environmentObject(AuthViewModel())
+                .tabItem {
+                    Label("Settings", systemImage: "gearshape.fill")
+                }
         }
     }
+}
+
+#Preview {
+    MainTabView()
+        .environmentObject(AuthViewModel())
 }

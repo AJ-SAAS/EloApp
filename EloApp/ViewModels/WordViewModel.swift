@@ -9,7 +9,7 @@ final class WordViewModel: ObservableObject {
     @Published var streak = UserDefaults.standard.integer(forKey: "elo_streak")
     @Published var wordCompleted = false
     
-    private let allWords = Word.sampleWords.shuffled()
+    private var allWords = Word.sampleWords.shuffled()
     
     init() { loadTodayWord() }
     
@@ -44,8 +44,18 @@ final class WordViewModel: ObservableObject {
         }
     }
     
+    func nextWord() {
+        let currentIndex = allWords.firstIndex(of: currentWord) ?? 0
+        let nextIndex = (currentIndex + 1) % allWords.count
+        currentWord = allWords[nextIndex]
+        currentTask = 0
+        wordCompleted = false
+        UserDefaults.standard.set(false, forKey: "elo_completedToday")
+    }
+    
     func resetForTesting() {
         currentTask = 0
         wordCompleted = false
+        UserDefaults.standard.set(false, forKey: "elo_completedToday")
     }
 }
