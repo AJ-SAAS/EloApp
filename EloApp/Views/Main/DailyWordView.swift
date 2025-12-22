@@ -23,7 +23,7 @@ struct DailyWordView: View {
     
     @State private var speechSynthesizer = AVSpeechSynthesizer()
     @AppStorage("selectedVoice") private var selectedVoice: String = VoiceOption.gbFemale.rawValue
-    @AppStorage("selectedDifficulty") private var selectedDifficulty: String = "Hard" // ✅ observe changes
+    @AppStorage("selectedDifficulty") private var selectedDifficulty: String = "Hard"
 
     // UI State
     @State private var spokenText = ""
@@ -39,7 +39,7 @@ struct DailyWordView: View {
     @State private var floatingXPText = "+0 XP"
     @State private var floatingXPOffset: CGFloat = 0
     @State private var showCompletion = false
-    @State private var showHint = false // ✅ hint button state
+    @State private var showHint = false
 
     private var prompt: String {
         switch vm.currentTask {
@@ -60,10 +60,11 @@ struct DailyWordView: View {
         ZStack {
             Color.white.ignoresSafeArea()
             
-            VStack(spacing: 24) {
-                Spacer().frame(height: 50)
+            VStack(spacing: 16) {  // ← Reduced from 24 to 16
                 
-                // ✅ Top bar: Next button top-right
+                Spacer().frame(height: 40)  // ← Slightly reduced top space
+                
+                // Top bar: Next button top-right
                 HStack {
                     Spacer()
                     Button(action: {
@@ -84,7 +85,7 @@ struct DailyWordView: View {
                 }
                 .padding(.horizontal)
                 
-                // ✅ Streak / XP centered
+                // Streak / XP centered
                 VStack(spacing: 4) {
                     Text("🔥 Streak: \(animatedStreak)")
                         .font(.headline.bold())
@@ -115,10 +116,9 @@ struct DailyWordView: View {
                 
                 // Pronunciation button
                 pronunciationButton
-                    .padding(.top, 4)
-                    .padding(.bottom, 4)
+                    .padding(.vertical, 6)
                 
-                // ✅ Sentence box / Hint for memory task
+                // Sentence box / Hint for memory task — no inner ScrollView
                 VStack {
                     if vm.currentTask == 2 && !showHint {
                         Button(action: { showHint.toggle() }) {
@@ -132,17 +132,18 @@ struct DailyWordView: View {
                             .cornerRadius(12)
                         }
                     } else {
-                        ScrollView { // dynamic height
-                            Text("“\(vm.currentWord.sentence)”")
-                                .font(.title2)
-                                .italic()
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 16)
-                        }
-                        .frame(minHeight: 100)
+                        Text("“\(vm.currentWord.sentence)”")
+                            .font(.title2)
+                            .italic()
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
                     }
                 }
                 .padding(.horizontal)
+                .frame(minHeight: 80)
+                .background(Color.gray.opacity(0.05))
+                .cornerRadius(12)
                 
                 // Task boxes
                 HStack(spacing: 12) {
@@ -151,42 +152,42 @@ struct DailyWordView: View {
                     TaskBox(title: "Memory", isCompleted: vm.currentTask >= 2)
                 }
                 
-                // Prompt or live transcription
+                // Prompt or live transcription — compact
                 if speech.isRecording {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("You said:")
                             .font(.caption)
                             .foregroundColor(.gray)
-                            .padding(.leading, 16)
+                            .padding(.leading, 4)
                         Text(spokenText.isEmpty ? "Listening…" : spokenText)
                             .font(.title3)
                             .padding()
                             .frame(maxWidth: .infinity)
                             .background(Color.gray.opacity(0.12))
                             .cornerRadius(14)
-                            .padding(.horizontal, 16)
                     }
+                    .padding(.horizontal, 8)
                 } else {
                     Text(prompt)
                         .font(.subheadline.bold())
                         .foregroundColor(.blue)
-                        .padding(.top, 4)
                 }
                 
                 if showTryAgain {
                     Text("Try again — speak clearly")
                         .foregroundColor(.red)
-                        .padding(.top, 4)
+                        .font(.subheadline)
                 }
                 
-                // Mic button with permission-aware fallback
+                // Mic button — safe from tab bar
                 micButton
                     .padding(.top, 20)
-                    .padding(.bottom, 60)
+                    .padding(.bottom, 90)  // ← Extra safe space above tab bar
                 
                 Spacer()
             }
             
+            // Overlays
             if showConfetti && vm.currentTask < 2 {
                 ConfettiView()
             }
@@ -206,7 +207,6 @@ struct DailyWordView: View {
                 }
             }
             
-            // ✅ Completion page
             if showCompletion {
                 CompletionView {
                     showCompletion = false
@@ -218,10 +218,8 @@ struct DailyWordView: View {
         }
         .onAppear {
             speech.requestPermission()
-            animatedStreak = vm.streak
-            animatedXP = UserDefaults.standard.integer(forKey: "elo_totalXP")
-            
-            // Refresh daily word for current difficulty
+            animatedStreak = ProgressTracker.shared.currentStreak
+            animatedXP = ProgressTracker.shared.xp
             vm.refreshWordsForCurrentDifficulty()
         }
         .onChange(of: selectedDifficulty) { _ in
@@ -316,13 +314,25 @@ struct DailyWordView: View {
     }
 
     private func celebrateTask() {
-        let xp = [10, 15, 25][vm.currentTask]
+        let xpAmounts = [10, 15, 25]
+        let xp = xpAmounts[vm.currentTask]
         xpGained = xp
+        
         let messages = ["Nice 👍", "Great job 😎", "Perfect 🎉"]
         toastText = messages[vm.currentTask]
         
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
+        
+        ProgressTracker.shared.trackXP(xp)
+        
+        if vm.currentTask == 0 {
+            ProgressTracker.shared.trackWordSpoken()
+        } else {
+            ProgressTracker.shared.trackSentenceSpoken()
+        }
+        
+        ProgressTracker.shared.trackPractice(seconds: 12)
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             withAnimation {
@@ -335,9 +345,7 @@ struct DailyWordView: View {
                 }
             }
 
-            let currentXP = UserDefaults.standard.integer(forKey: "elo_totalXP")
-            let newXP = currentXP + xp
-            UserDefaults.standard.set(newXP, forKey: "elo_totalXP")
+            let newXP = ProgressTracker.shared.xp
             animateValue(from: animatedXP, to: newXP, duration: 0.8) { animatedXP = $0 }
         }
         
@@ -367,9 +375,8 @@ struct DailyWordView: View {
             }
         }
 
-        let previousStreak = animatedStreak
-        let newStreak = vm.streak + (vm.currentTask == 2 ? 1 : 0)
-        animateValue(from: previousStreak, to: newStreak, duration: 1.0) { animatedStreak = $0 }
+        let newStreak = ProgressTracker.shared.currentStreak
+        animateValue(from: animatedStreak, to: newStreak, duration: 1.0) { animatedStreak = $0 }
     }
 
     private func speak(_ text: String) {

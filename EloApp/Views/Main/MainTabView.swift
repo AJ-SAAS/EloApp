@@ -3,9 +3,15 @@ import SwiftUI
 struct MainTabView: View {
     var body: some View {
         TabView {
+
             HomeView()
                 .tabItem {
                     Label("Today", systemImage: "flame.fill")
+                }
+
+            ProgressView()
+                .tabItem {
+                    Label("Progress", systemImage: "chart.bar.fill")
                 }
 
             SettingsView()
