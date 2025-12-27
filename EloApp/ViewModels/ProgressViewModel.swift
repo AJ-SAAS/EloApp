@@ -1,5 +1,6 @@
+import Foundation
 import SwiftUI
-import Combine
+import Combine   // ← ADD THIS
 
 @MainActor
 final class ProgressViewModel: ObservableObject {
