@@ -1,47 +1,50 @@
-// AuthView.swift
-
 import SwiftUI
 
 struct AuthView: View {
     @EnvironmentObject var authVM: AuthViewModel
-    
+
     @State private var email = ""
     @State private var password = ""
-    @State private var displayName = ""
-    @State private var isSignUp = false
-    
+    @State private var confirmPassword = ""
+    @State private var isSignUp = true // ✅ Always start on Create Account
+
     var body: some View {
         VStack(spacing: 20) {
+
             Text(isSignUp ? "Create Account" : "Welcome Back")
                 .font(.largeTitle.bold())
                 .padding(.bottom, 40)
-            
-            if isSignUp {
-                TextField("Display Name", text: $displayName)
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(12)
-            }
-            
+
+            // Email Field
             TextField("Email", text: $email)
                 .textInputAutocapitalization(.never)
                 .keyboardType(.emailAddress)
                 .padding()
                 .background(Color.gray.opacity(0.1))
                 .cornerRadius(12)
-            
+
+            // Password Field
             SecureField("Password", text: $password)
                 .padding()
                 .background(Color.gray.opacity(0.1))
                 .cornerRadius(12)
-            
+
+            // Confirm Password for Sign Up
+            if isSignUp {
+                SecureField("Confirm Password", text: $confirmPassword)
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(12)
+            }
+
+            // Error message
             if let error = authVM.errorMessage {
                 Text(error)
                     .foregroundColor(.red)
                     .multilineTextAlignment(.center)
-                    .padding(.top, 4)
             }
-            
+
+            // Auth Button
             Button(action: handleAuth) {
                 Text(isSignUp ? "Sign Up" : "Sign In")
                     .font(.headline.bold())
@@ -49,45 +52,60 @@ struct AuthView: View {
                     .padding()
                     .frame(maxWidth: .infinity)
                     .background(
-                        LinearGradient(colors: [Color.blue, Color.purple],
-                                       startPoint: .topLeading,
-                                       endPoint: .bottomTrailing)
+                        LinearGradient(
+                            colors: [.blue, .purple],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
                     )
                     .cornerRadius(12)
-                    .shadow(color: .black.opacity(0.25), radius: 4, x: 2, y: 2)
             }
-            .padding(.top, 10)
-            
-            Button(action: { isSignUp.toggle() }) {
-                Text(isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up")
-                    .font(.subheadline)
-                    .foregroundColor(.blue)
-                    .padding(.top, 10)
+            .disabled(isSignUp && password != confirmPassword)
+
+            // Toggle Sign In / Sign Up
+            Button {
+                isSignUp.toggle()
+            } label: {
+                Text(isSignUp
+                     ? "Already have an account? Sign In"
+                     : "Don't have an account? Sign Up")
             }
-            
+            .foregroundColor(.blue)
+
             Spacer()
         }
         .padding()
-        .background(Color.white.ignoresSafeArea())  // ← ADD THIS: ensures no blank background
+        .background(Color.white.ignoresSafeArea())
         .navigationTitle(isSignUp ? "Sign Up" : "Sign In")
         .navigationBarTitleDisplayMode(.inline)
         .overlay {
             if authVM.isLoading {
                 ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .blue))
-                    .scaleEffect(1.5)
-                    .background(Color.black.opacity(0.2))
-                    .cornerRadius(10)
+                    .scaleEffect(1.0) // ✅ Remove zoom glitch
             }
         }
     }
-    
+
+    // MARK: - Handle Auth Logic
     private func handleAuth() {
         Task {
             if isSignUp {
-                await authVM.register(email: email, password: password, displayName: displayName)
+                guard password == confirmPassword else {
+                    authVM.errorMessage = "Passwords do not match"
+                    return
+                }
+
+                let success = await authVM.register(email: email, password: password)
+                if success {
+                    authVM.completeOnboarding()
+                    authVM.isSignedIn = true // ✅ Immediately mark signed in
+                }
+
             } else {
-                await authVM.signIn(email: email, password: password)
+                let success = await authVM.signIn(email: email, password: password)
+                if success {
+                    authVM.isSignedIn = true
+                }
             }
         }
     }

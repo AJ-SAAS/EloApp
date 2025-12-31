@@ -1,5 +1,3 @@
-// Views/Onboarding/OnboardingContainerView.swift
-
 import SwiftUI
 
 struct OnboardingContainerView: View {
@@ -15,6 +13,7 @@ struct OnboardingContainerView: View {
 
                 TabView(selection: $vm.currentPage) {
 
+                    // MARK: - Welcome / Feature Intro
                     WelcomeView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.welcome)
 
@@ -36,12 +35,19 @@ struct OnboardingContainerView: View {
                     )
                     .tag(OnboardingViewModel.OnboardingPage.featureProgress)
 
+                    // MARK: - First Free Trial Toggle
                     FreeTrialToggleView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.freeTrialToggle1)
 
+                    // ✅ NEW: Free Trial Info after first toggle
+                    FreeTrialInfoView(vm: vm)
+                        .tag(OnboardingViewModel.OnboardingPage.freeTrialInfo1)
+
+                    // First paywall
                     PaywallView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.paywall1)
 
+                    // MARK: - Questions
                     QuestionNameView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionName)
 
@@ -66,21 +72,23 @@ struct OnboardingContainerView: View {
                     QuestionNotificationsView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionNotifications)
 
+                    // MARK: - Preparing Plan
                     PreparingPlanView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.preparingPlan)
 
+                    // MARK: - Second Free Trial Toggle
                     FreeTrialToggleView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.freeTrialToggle2)
 
+                    // ✅ NEW: Free Trial Info after second toggle
+                    FreeTrialInfoView(vm: vm)
+                        .tag(OnboardingViewModel.OnboardingPage.freeTrialInfo2)
+
+                    // Second paywall
                     PaywallView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.paywall2)
 
-                    ScratchWinView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.scratchWin)
-
-                    ClaimRewardView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.claimReward)
-
+                    // MARK: - Auth Setup
                     AuthSetupView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.authSetup)
                 }
@@ -88,7 +96,6 @@ struct OnboardingContainerView: View {
                 .animation(.easeInOut, value: vm.currentPage)
 
                 // MARK: - Bottom CTA Button Logic
-
                 if isFeaturePage {
                     Button("Continue") {
                         vm.nextPage()
@@ -111,12 +118,18 @@ struct OnboardingContainerView: View {
                     .buttonStyle(PrimaryButtonStyle())
                     .padding()
                 }
+                else if isFreeTrialInfoPage {
+                    Button("Show Plans") {
+                        vm.nextPage()
+                    }
+                    .buttonStyle(PrimaryButtonStyle())
+                    .padding()
+                }
             }
         }
     }
 
     // MARK: - Helpers
-
     private var isFeaturePage: Bool {
         vm.currentPage == .featureTutor ||
         vm.currentPage == .featureFeedback ||
@@ -126,6 +139,10 @@ struct OnboardingContainerView: View {
     private var isQuestionPage: Bool {
         vm.currentPage.rawValue >= OnboardingViewModel.OnboardingPage.questionName.rawValue &&
         vm.currentPage.rawValue <= OnboardingViewModel.OnboardingPage.questionNotifications.rawValue
+    }
+
+    private var isFreeTrialInfoPage: Bool {
+        vm.currentPage == .freeTrialInfo1 || vm.currentPage == .freeTrialInfo2
     }
 
     private func isCurrentQuestionValid() -> Bool {

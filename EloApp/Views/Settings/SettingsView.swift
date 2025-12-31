@@ -1,9 +1,8 @@
 import SwiftUI
-import FirebaseAuth
 import AVFoundation
 import Speech
 
-// ⭐️ NEW: Difficulty enum (safe, standalone)
+// MARK: - Difficulty Enum
 enum Difficulty: String, CaseIterable {
     case easy = "Easy"
     case medium = "Medium"
@@ -17,33 +16,29 @@ struct SettingsView: View {
     @AppStorage("pref_notifications") private var notificationsEnabled = true
     @AppStorage("pref_sounds") private var soundsEnabled = true
     @AppStorage("selectedVoice") private var selectedVoice: String = VoiceOption.gbFemale.rawValue
-
-    // ⭐️ NEW: Difficulty preference (defaults to current behavior = Hard)
     @AppStorage("selectedDifficulty") private var selectedDifficulty: String = Difficulty.hard.rawValue
 
     // MARK: - Permission State
-    @State private var micAvailable = AVAudioSession.sharedInstance().recordPermission == .granted
-    @State private var speechAvailable = SFSpeechRecognizer.authorizationStatus() == .authorized
+    @State private var micAvailable =
+        AVAudioSession.sharedInstance().recordPermission == .granted
+    @State private var speechAvailable =
+        SFSpeechRecognizer.authorizationStatus() == .authorized
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 30) {
 
                     // MARK: - Account Info
                     VStack(spacing: 8) {
-                        Text("Account")
-                            .font(.title2.bold())
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal)
+                        sectionTitle("Account")
 
-                        if let email = Auth.auth().currentUser?.email {
+                        if let email = authVM.userEmail {
                             HStack {
                                 Text("Email")
                                     .foregroundColor(.gray)
                                 Spacer()
                                 Text(email)
-                                    .foregroundColor(.black)
                             }
                             .padding()
                             .background(Color.gray.opacity(0.1))
@@ -58,85 +53,51 @@ struct SettingsView: View {
 
                     // MARK: - Preferences
                     VStack(spacing: 8) {
-                        Text("Preferences")
-                            .font(.title2.bold())
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal)
+                        sectionTitle("Preferences")
 
                         VStack(spacing: 10) {
                             Toggle("Daily Notifications", isOn: $notificationsEnabled)
-                                .padding()
-                                .background(Color.gray.opacity(0.1))
-                                .cornerRadius(14)
-                                .padding(.horizontal)
+                                .settingsRow()
 
                             Toggle("Enable Sounds", isOn: $soundsEnabled)
-                                .padding()
-                                .background(Color.gray.opacity(0.1))
-                                .cornerRadius(14)
-                                .padding(.horizontal)
+                                .settingsRow()
 
-                            // Voice Picker
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text("Voice")
-                                    .font(.headline)
+                            pickerSection(
+                                title: "Voice",
+                                selection: $selectedVoice,
+                                options: VoiceOption.allCases.map { $0.rawValue }
+                            )
 
-                                Picker("Select Voice", selection: $selectedVoice) {
-                                    ForEach(VoiceOption.allCases, id: \.rawValue) {
-                                        Text($0.rawValue).tag($0.rawValue)
-                                    }
-                                }
-                                .pickerStyle(.segmented)
-                            }
-                            .padding()
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(14)
-                            .padding(.horizontal)
-
-                            // ⭐️ NEW: Difficulty Picker
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text("Difficulty")
-                                    .font(.headline)
-
-                                Picker("Select Difficulty", selection: $selectedDifficulty) {
-                                    ForEach(Difficulty.allCases, id: \.rawValue) {
-                                        Text($0.rawValue).tag($0.rawValue)
-                                    }
-                                }
-                                .pickerStyle(.segmented)
-                            }
-                            .padding()
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(14)
-                            .padding(.horizontal)
+                            pickerSection(
+                                title: "Difficulty",
+                                selection: $selectedDifficulty,
+                                options: Difficulty.allCases.map { $0.rawValue }
+                            )
                         }
                     }
 
-                    // MARK: - Voice Access (Apple Review Friendly)
+                    // MARK: - Voice Access
                     VStack(spacing: 10) {
-                        Text("Voice Access")
-                            .font(.title2.bold())
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal)
+                        sectionTitle("Voice Access")
 
                         VStack(spacing: 12) {
-                            HStack {
-                                Image(systemName: "mic.fill")
-                                Text("Microphone")
-                                Spacer()
-                                statusView(isEnabled: micAvailable)
-                            }
+                            permissionRow(
+                                icon: "mic.fill",
+                                title: "Microphone",
+                                enabled: micAvailable
+                            )
 
-                            HStack {
-                                Image(systemName: "waveform")
-                                Text("Speech Recognition")
-                                Spacer()
-                                statusView(isEnabled: speechAvailable)
-                            }
+                            permissionRow(
+                                icon: "waveform",
+                                title: "Speech Recognition",
+                                enabled: speechAvailable
+                            )
 
                             if !micAvailable || !speechAvailable {
                                 Button("Open Settings") {
-                                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                                    if let url = URL(
+                                        string: UIApplication.openSettingsURLString
+                                    ) {
                                         UIApplication.shared.open(url)
                                     }
                                 }
@@ -144,31 +105,25 @@ struct SettingsView: View {
                                 .padding(.top, 6)
                             }
                         }
-                        .padding()
-                        .background(Color.gray.opacity(0.1))
-                        .cornerRadius(14)
-                        .padding(.horizontal)
+                        .settingsGroup()
                     }
 
                     // MARK: - General
                     VStack(spacing: 8) {
-                        Text("General")
-                            .font(.title2.bold())
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal)
+                        sectionTitle("General")
 
                         VStack(spacing: 10) {
                             SettingsRow(title: "Privacy Policy") {
-                                openLink(url: "https://your-privacy-policy.com")
+                                openLink("https://your-privacy-policy.com")
                             }
                             SettingsRow(title: "Terms of Use") {
-                                openLink(url: "https://your-terms.com")
+                                openLink("https://your-terms.com")
                             }
                             SettingsRow(title: "Give Feedback") {
-                                openLink(url: "mailto:feedback@yourapp.com")
+                                openLink("mailto:feedback@yourapp.com")
                             }
                             SettingsRow(title: "Contact Us") {
-                                openLink(url: "mailto:support@yourapp.com")
+                                openLink("mailto:support@yourapp.com")
                             }
                         }
                         .padding(.horizontal)
@@ -176,38 +131,23 @@ struct SettingsView: View {
 
                     // MARK: - Account Actions
                     VStack(spacing: 8) {
-                        Text("Account Actions")
-                            .font(.title2.bold())
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal)
+                        sectionTitle("Account Actions")
 
                         VStack(spacing: 10) {
                             Button("Delete Account") {
-                                print("Delete account tapped")
+                                // TODO: Add delete flow (reauth required)
                             }
-                            .foregroundColor(.red)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.red.opacity(0.1))
-                            .cornerRadius(14)
+                            .destructiveButton()
 
                             Button("Restore Purchases") {
-                                print("Restore purchases tapped")
+                                // TODO: Restore purchases
                             }
-                            .foregroundColor(.blue)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue.opacity(0.1))
-                            .cornerRadius(14)
+                            .secondaryButton()
 
                             Button("Sign Out") {
                                 authVM.signOut()
                             }
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.black)
-                            .cornerRadius(14)
+                            .primaryButton()
                         }
                         .padding(.horizontal)
                     }
@@ -217,39 +157,127 @@ struct SettingsView: View {
                 .padding(.top, 20)
             }
             .navigationTitle("Settings")
-            .onAppear {
+            .onAppear(perform: updatePermissions)
+            .onReceive(
+                NotificationCenter.default.publisher(
+                    for: UIApplication.didBecomeActiveNotification
+                )
+            ) { _ in
                 updatePermissions()
-                NotificationCenter.default.addObserver(
-                    forName: UIApplication.didBecomeActiveNotification,
-                    object: nil,
-                    queue: .main
-                ) { _ in
-                    updatePermissions()
-                }
             }
         }
     }
 
     // MARK: - Helpers
+
     private func updatePermissions() {
-        micAvailable = AVAudioSession.sharedInstance().recordPermission == .granted
-        speechAvailable = SFSpeechRecognizer.authorizationStatus() == .authorized
+        micAvailable =
+            AVAudioSession.sharedInstance().recordPermission == .granted
+        speechAvailable =
+            SFSpeechRecognizer.authorizationStatus() == .authorized
     }
 
-    private func statusView(isEnabled: Bool) -> some View {
+    private func openLink(_ url: String) {
+        if let link = URL(string: url) {
+            UIApplication.shared.open(link)
+        }
+    }
+
+    // MARK: - UI Helpers
+
+    private func sectionTitle(_ text: String) -> some View {
+        Text(text)
+            .font(.title2.bold())
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal)
+    }
+
+    private func permissionRow(
+        icon: String,
+        title: String,
+        enabled: Bool
+    ) -> some View {
+        HStack {
+            Image(systemName: icon)
+            Text(title)
+            Spacer()
+            statusView(enabled)
+        }
+    }
+
+    private func statusView(_ enabled: Bool) -> some View {
         HStack(spacing: 6) {
             Circle()
-                .fill(isEnabled ? Color.green : Color.red)
+                .fill(enabled ? .green : .red)
                 .frame(width: 12, height: 12)
-            Text(isEnabled ? "Enabled" : "Disabled")
+            Text(enabled ? "Enabled" : "Disabled")
                 .foregroundColor(.gray)
         }
     }
 
-    private func openLink(url: String) {
-        if let link = URL(string: url) {
-            UIApplication.shared.open(link)
+    private func pickerSection(
+        title: String,
+        selection: Binding<String>,
+        options: [String]
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title).font(.headline)
+
+            Picker(title, selection: selection) {
+                ForEach(options, id: \.self) {
+                    Text($0).tag($0)
+                }
+            }
+            .pickerStyle(.segmented)
         }
+        .settingsGroup()
+    }
+}
+
+// MARK: - Reusable Modifiers
+
+extension View {
+    func settingsGroup() -> some View {
+        self
+            .padding()
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(14)
+            .padding(.horizontal)
+    }
+
+    func settingsRow() -> some View {
+        self
+            .padding()
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(14)
+            .padding(.horizontal)
+    }
+
+    func primaryButton() -> some View {
+        self
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.black)
+            .cornerRadius(14)
+    }
+
+    func secondaryButton() -> some View {
+        self
+            .foregroundColor(.blue)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.blue.opacity(0.1))
+            .cornerRadius(14)
+    }
+
+    func destructiveButton() -> some View {
+        self
+            .foregroundColor(.red)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.red.opacity(0.1))
+            .cornerRadius(14)
     }
 }
 

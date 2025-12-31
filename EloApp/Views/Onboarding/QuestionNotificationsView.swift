@@ -1,36 +1,44 @@
-// Views/Onboarding/QuestionNotificationsView.swift
-
 import SwiftUI
 
 struct QuestionNotificationsView: View {
     @ObservedObject var vm: OnboardingViewModel
     
     var body: some View {
-        VStack(spacing: 40) {
-            Image(systemName: "bell.fill")
-                .font(.system(size: 80))
-                .foregroundColor(.blue)
+        ZStack(alignment: .topLeading) {
+            VStack(spacing: 40) {
+                Spacer().frame(height: 40)
+                
+                Image(systemName: "bell.fill")
+                    .font(.system(size: 80))
+                    .foregroundColor(.purple)
+                
+                Text("I will remind you of your training time every day")
+                    .font(.title2.bold())
+                    .multilineTextAlignment(.center)
+                
+                Text("Allow notifications not to miss your practice time.")
+                    .font(.title3)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                
+                Spacer()
+            }
+            .padding()
             
-            Text("I will remind you of your training time every day")
-                .font(.title2)
-                .multilineTextAlignment(.center)
-            
-            Text("Allow notifications not to miss your practice time.")
-                .font(.title3)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-            
-            Spacer()
+            // Back button
+            Button {
+                vm.previousPage()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.title2.bold())
+                    .foregroundColor(.primary)
+                    .padding()
+            }
         }
-        .padding()
         .onAppear {
             Task {
                 await vm.requestNotificationPermission()
-            }
-            // Auto-advance after a short delay to let user read
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                vm.nextPage()
             }
         }
     }

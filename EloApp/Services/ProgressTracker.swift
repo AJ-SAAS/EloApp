@@ -7,7 +7,7 @@ final class ProgressTracker: ObservableObject {
     static let shared = ProgressTracker()
     private let defaults = UserDefaults.standard
 
-    // MARK: - Reactive onboarding flag (🔥 THIS IS THE FIX)
+    // MARK: - Reactive onboarding flag
     @Published private(set) var onboardingCompleted: Bool
 
     private init() {
@@ -64,7 +64,7 @@ final class ProgressTracker: ObservableObject {
         return dict
     }
 
-    // MARK: - Onboarding (🔥 REACTIVE NOW)
+    // MARK: - Onboarding
     var isOnboardingCompleted: Bool {
         onboardingCompleted
     }
@@ -72,6 +72,12 @@ final class ProgressTracker: ObservableObject {
     func markOnboardingCompleted() {
         onboardingCompleted = true
         defaults.set(true, forKey: Key.onboardingCompleted)
+    }
+
+    // ✅🔥 ADD THIS (LOGOUT FIX)
+    func resetOnboarding() {
+        onboardingCompleted = false
+        defaults.set(false, forKey: Key.onboardingCompleted)
     }
 
     // MARK: - Public Tracking

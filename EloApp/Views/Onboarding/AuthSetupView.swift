@@ -1,53 +1,65 @@
-// Views/Onboarding/AuthSetupView.swift
-
 import SwiftUI
 
 struct AuthSetupView: View {
     @ObservedObject var vm: OnboardingViewModel
-    @EnvironmentObject var authVM: AuthViewModel
+    @State private var email = ""
+    @State private var password = ""
+    @State private var confirmPassword = ""
+    @State private var isCreateAccount = true // Always start on Create Account
 
     var body: some View {
-        VStack(spacing: 40) {
-            Image(systemName: "person.circle.fill")
-                .font(.system(size: 100))
-                .foregroundColor(.blue)
+        VStack(spacing: 30) {
 
-            Text("Hi \(vm.userName.isEmpty ? "" : vm.userName.capitalized),")
+            Text(isCreateAccount ? "Create Account" : "Sign In")
                 .font(.largeTitle.bold())
+                .padding(.top, 40)
 
-            Text("Let's finish your setup!")
-                .font(.title2)
-
-            Text("Create an account to save your progress.")
-                .font(.title3)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
+            TextField("Email", text: $email)
+                .textInputAutocapitalization(.none)
+                .keyboardType(.emailAddress)
+                .padding()
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(16)
                 .padding(.horizontal)
 
-            Button("Continue with Email") {
-                completeOnboarding()
+            SecureField("Password", text: $password)
+                .padding()
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(16)
+                .padding(.horizontal)
+
+            if isCreateAccount {
+                SecureField("Confirm Password", text: $confirmPassword)
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(16)
+                    .padding(.horizontal)
+            }
+
+            Button(isCreateAccount ? "Create Account" : "Sign In") {
+                handleAuth()
             }
             .buttonStyle(PrimaryButtonStyle())
-
-            Button("Already have an account? Log in") {
-                completeOnboarding()
-            }
-            .foregroundColor(.blue)
+            .padding(.horizontal)
 
             Spacer()
         }
-        .padding()
-        .background(Color.white.ignoresSafeArea())
     }
 
-    // MARK: - Helpers
+    private func handleAuth() {
+        guard !email.isEmpty, !password.isEmpty else { return }
 
-    private func completeOnboarding() {
-        ProgressTracker.shared.markOnboardingCompleted()
+        if isCreateAccount {
+            guard password == confirmPassword else {
+                // Show error: passwords do not match
+                return
+            }
+            // Call your signup API here
+        } else {
+            // Sign in API
+        }
 
-        // IMPORTANT:
-        // Do NOT dismiss or navigate manually.
-        // RootView will automatically show AuthView
-        // because user is not signed in.
+        // Directly go to home page, no extra progress screen
+        // Example: authVM.currentUser = ...
     }
 }

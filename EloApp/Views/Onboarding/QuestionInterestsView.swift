@@ -1,88 +1,94 @@
-// Views/Onboarding/QuestionInterestsView.swift
-
 import SwiftUI
 
 struct QuestionInterestsView: View {
     @ObservedObject var vm: OnboardingViewModel
     @State private var showMoreInterests = false
-    
+
     let initialInterests = [
-        ("Pop Culture", "🎉"),
-        ("Cooking", "🍳"),
-        ("Food", "🍔"),
-        ("Travel", "✈️"),
-        ("Shopping", "🛍️"),
-        ("Sports", "⚽"),
-        ("Movies", "🎬"),
-        ("Music", "🎵"),
-        ("Technology", "💻")  // ← Added to make 9 cards
+        ("Pop Culture", "🎉"), ("Cooking", "🍳"), ("Food", "🍔"),
+        ("Travel", "✈️"), ("Shopping", "🛍️"), ("Sports", "⚽"),
+        ("Movies", "🎬"), ("Music", "🎵"), ("Technology", "💻")
     ]
-    
+
     let allInterests = [
         ("Business", "💼"), ("Health", "🏥"), ("Fitness", "🏋️"),
         ("Fashion", "👗"), ("Art", "🎨"), ("Books", "📚"),
         ("Gaming", "🎮"), ("Nature", "🌿"), ("Photography", "📸"),
         ("Science", "🔬"), ("History", "🏛️")
     ]
-    
+
     var body: some View {
-        VStack(spacing: 30) {
-            Text("Please select your interests")
-                .font(.largeTitle.bold())
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-            
-            Text("You can choose up to 4")
-                .font(.title3)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-            
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                ForEach(initialInterests, id: \.0) { interest, emoji in
-                    InterestButton(
-                        title: interest,
-                        emoji: emoji,
-                        isSelected: vm.selectedInterests.contains(interest),
-                        canSelectMore: vm.selectedInterests.count < 4
-                    ) {
-                        toggleInterest(interest)
+        ZStack(alignment: .topLeading) {
+
+            VStack(spacing: 30) {
+
+                Spacer().frame(height: 40)
+
+                Text("Please select your interests")
+                    .font(.largeTitle.bold())
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+
+                Text("You can choose up to 4")
+                    .font(.title3)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+
+                LazyVGrid(
+                    columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())],
+                    spacing: 16
+                ) {
+                    ForEach(initialInterests, id: \.0) { interest, emoji in
+                        InterestButton(
+                            title: interest,
+                            emoji: emoji,
+                            isSelected: vm.selectedInterests.contains(interest),
+                            canSelectMore: vm.selectedInterests.count < 4
+                        ) {
+                            toggleInterest(interest)
+                        }
                     }
                 }
+                .padding(.horizontal)
+
+                Button("More interests") {
+                    showMoreInterests = true
+                }
+                .font(.title2.bold())
+                .foregroundColor(.primary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(Color.gray.opacity(0.15))
+                .cornerRadius(16)
+                .padding(.horizontal)
+
+                Spacer()
             }
-            .padding(.horizontal)
-            
-            Button("More interests") {
-                showMoreInterests = true
+            .padding()
+
+            // Back button
+            Button {
+                vm.previousPage()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.title2.bold())
+                    .foregroundColor(.primary)
+                    .padding()
             }
-            .font(.title2.bold())  // ← 2pt bigger + bold
-            .foregroundColor(.primary)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .background(Color.gray.opacity(0.15))
-            .cornerRadius(16)
-            .padding(.horizontal)
-            
-            Spacer()
         }
-        .padding()
         .sheet(isPresented: $showMoreInterests) {
             NavigationView {
                 List(allInterests, id: \.0) { interest, emoji in
                     Button {
                         toggleInterest(interest)
-                        if vm.selectedInterests.count >= 4 {
-                            showMoreInterests = false
-                        }
                     } label: {
                         HStack {
-                            Text(emoji)
-                                .font(.system(size: 30))
-                            Text(interest)
-                                .font(.title2)  // ← 4pt bigger, much more readable
+                            Text(emoji).font(.system(size: 30))
+                            Text(interest).font(.title2)
                             Spacer()
                             if vm.selectedInterests.contains(interest) {
                                 Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(.purple)
                                     .font(.title3.bold())
                             }
                         }
@@ -101,7 +107,7 @@ struct QuestionInterestsView: View {
             }
         }
     }
-    
+
     private func toggleInterest(_ interest: String) {
         if vm.selectedInterests.contains(interest) {
             vm.selectedInterests.remove(interest)
@@ -117,12 +123,11 @@ struct InterestButton: View {
     let isSelected: Bool
     let canSelectMore: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 12) {
-                Text(emoji)
-                    .font(.system(size: 48))
+                Text(emoji).font(.system(size: 48))
                 Text(title)
                     .font(.headline.bold())
                     .foregroundColor(isSelected ? .white : .primary)
