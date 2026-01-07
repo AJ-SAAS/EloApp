@@ -11,7 +11,7 @@ struct QuestionDailyGoalView: View {
                 Spacer().frame(height: 40)
                 
                 Text("What's your daily practice goal?")
-                    .font(.largeTitle.bold())
+                    .font(.system(size: 36, weight: .regular, design: .serif))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
                 
@@ -20,7 +20,7 @@ struct QuestionDailyGoalView: View {
                         vm.dailyGoal = goal
                     } label: {
                         Text(goal)
-                            .font(.title2.bold())
+                            .font(.system(size: 20, weight: .semibold))
                             .foregroundColor(vm.dailyGoal == goal ? .white : .primary)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -43,6 +43,8 @@ struct QuestionDailyGoalView: View {
                     .font(.title2.bold())
                     .foregroundColor(.primary)
                     .padding()
+                    .background(Color(UIColor.systemBackground))
+                    .clipShape(Circle())
             }
         }
     }

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		921E8B422F0689FE0074FAD6 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 921E8B412F0689FE0074FAD6 /* RevenueCat */; };
 		9299C5E22EE62EEA00F0A85E /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 9299C5E12EE62EEA00F0A85E /* FirebaseAuth */; };
 		9299C5E42EE62EEA00F0A85E /* FirebaseAuthCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 9299C5E32EE62EEA00F0A85E /* FirebaseAuthCombine-Community */; };
 		9299C5E62EE62EEA00F0A85E /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 9299C5E52EE62EEA00F0A85E /* FirebaseDatabase */; };
@@ -63,6 +64,7 @@
 			files = (
 				9299C5E62EE62EEA00F0A85E /* FirebaseDatabase in Frameworks */,
 				9299C5E82EE62EEA00F0A85E /* FirebaseFirestore in Frameworks */,
+				921E8B422F0689FE0074FAD6 /* RevenueCat in Frameworks */,
 				9299C5EA2EE62EEA00F0A85E /* FirebaseFunctions in Frameworks */,
 				9299C5E22EE62EEA00F0A85E /* FirebaseAuth in Frameworks */,
 				9299C5E42EE62EEA00F0A85E /* FirebaseAuthCombine-Community in Frameworks */,
@@ -133,6 +135,7 @@
 				9299C5E72EE62EEA00F0A85E /* FirebaseFirestore */,
 				9299C5E92EE62EEA00F0A85E /* FirebaseFunctions */,
 				9299C5EB2EE62EEA00F0A85E /* FirebaseStorage */,
+				921E8B412F0689FE0074FAD6 /* RevenueCat */,
 			);
 			productName = EloApp;
 			productReference = 927ABE1C2EE04178005812CB /* EloApp.app */;
@@ -218,6 +221,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				9299C5E02EE62EE900F0A85E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				921E8B402F0689FE0074FAD6 /* XCRemoteSwiftPackageReference "purchases-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 927ABE1D2EE04178005812CB /* Products */;
@@ -620,6 +624,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		921E8B402F0689FE0074FAD6 /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.52.1;
+			};
+		};
 		9299C5E02EE62EE900F0A85E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -631,6 +643,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		921E8B412F0689FE0074FAD6 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 921E8B402F0689FE0074FAD6 /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			productName = RevenueCat;
+		};
 		9299C5E12EE62EEA00F0A85E /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9299C5E02EE62EE900F0A85E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

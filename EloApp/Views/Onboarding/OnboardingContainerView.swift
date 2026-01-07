@@ -7,123 +7,102 @@ struct OnboardingContainerView: View {
 
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea()
+            Color.white
+                .ignoresSafeArea()
 
             VStack(spacing: 0) {
-
                 TabView(selection: $vm.currentPage) {
 
-                    // MARK: - Welcome / Feature Intro
+                    // Welcome
                     WelcomeView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.welcome)
 
+                    // Feature slides (edge-to-edge)
                     FeatureIntroView(
-                        title: "Your Personal Private Tutor",
-                        subtitle: "Experience learning with your own welcoming virtual teacher."
+                        title: "Your Personal AI English Tutor",
+                        subtitle: "Get instant feedback and guidance tailored just for you.",
+                        imageName: "eloob3"
                     )
                     .tag(OnboardingViewModel.OnboardingPage.featureTutor)
 
                     FeatureIntroView(
-                        title: "Feedback & Improve",
-                        subtitle: "Elo identifies your improvement areas and encourages you to develop them."
+                        title: "Track & Improve",
+                        subtitle: "Elo shows you where to improve and helps you practice those skills.",
+                        imageName: "eloob2"
                     )
                     .tag(OnboardingViewModel.OnboardingPage.featureFeedback)
 
                     FeatureIntroView(
                         title: "Progress & Grow",
-                        subtitle: "Elo creates a personalized learning path for you."
+                        subtitle: "Elo creates a personalized learning path for you.",
+                        imageName: "eloob6"
                     )
                     .tag(OnboardingViewModel.OnboardingPage.featureProgress)
 
-                    // MARK: - First Free Trial Toggle
+                    // Free trial / paywalls / questions
                     FreeTrialToggleView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.freeTrialToggle1)
 
-                    // ✅ NEW: Free Trial Info after first toggle
                     FreeTrialInfoView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.freeTrialInfo1)
 
-                    // First paywall
-                    PaywallView(vm: vm)
+                    PaywallView(vm: vm, showAuthInline: false)
                         .tag(OnboardingViewModel.OnboardingPage.paywall1)
 
-                    // MARK: - Questions
                     QuestionNameView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionName)
-
                     QuestionNativeLanguageView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionNativeLang)
-
                     QuestionEnglishLevelView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionLevel)
-
                     QuestionInterestsView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionInterests)
-
                     QuestionImprovementAreasView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionAreas)
-
                     QuestionDailyGoalView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionGoal)
-
                     QuestionReminderTimeView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionReminder)
-
                     QuestionNotificationsView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionNotifications)
 
-                    // MARK: - Preparing Plan
                     PreparingPlanView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.preparingPlan)
 
-                    // MARK: - Second Free Trial Toggle
                     FreeTrialToggleView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.freeTrialToggle2)
 
-                    // ✅ NEW: Free Trial Info after second toggle
                     FreeTrialInfoView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.freeTrialInfo2)
 
-                    // Second paywall
-                    PaywallView(vm: vm)
+                    PaywallView(vm: vm, showAuthInline: true)
+                        .environmentObject(authVM)
                         .tag(OnboardingViewModel.OnboardingPage.paywall2)
-
-                    // MARK: - Auth Setup
-                    AuthSetupView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.authSetup)
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                 .animation(.easeInOut, value: vm.currentPage)
+                // ✅ No swipe gestures, only button-driven navigation
 
-                // MARK: - Bottom CTA Button Logic
-                if isFeaturePage {
-                    Button("Continue") {
-                        vm.nextPage()
+                // Bottom buttons
+                VStack {
+                    if isFeaturePage {
+                        Button("Continue") { vm.nextPage() }
+                            .buttonStyle(PrimaryButtonStyle())
+                            .padding()
+                    } else if isQuestionPage {
+                        Button("Next") { vm.nextPage() }
+                            .buttonStyle(PrimaryButtonStyle())
+                            .padding()
+                            .disabled(!isCurrentQuestionValid())
+                    } else if vm.currentPage == .preparingPlan {
+                        Button("Get My Plan") { vm.nextPage() }
+                            .buttonStyle(PrimaryButtonStyle())
+                            .padding()
+                    } else if isFreeTrialInfoPage {
+                        Button("Show Plans") { vm.nextPage() }
+                            .buttonStyle(PrimaryButtonStyle())
+                            .padding()
                     }
-                    .buttonStyle(PrimaryButtonStyle())
-                    .padding()
-                }
-                else if isQuestionPage {
-                    Button("Next") {
-                        vm.nextPage()
-                    }
-                    .buttonStyle(PrimaryButtonStyle())
-                    .padding()
-                    .disabled(!isCurrentQuestionValid())
-                }
-                else if vm.currentPage == .preparingPlan {
-                    Button("Get My Plan") {
-                        vm.nextPage()
-                    }
-                    .buttonStyle(PrimaryButtonStyle())
-                    .padding()
-                }
-                else if isFreeTrialInfoPage {
-                    Button("Show Plans") {
-                        vm.nextPage()
-                    }
-                    .buttonStyle(PrimaryButtonStyle())
-                    .padding()
                 }
             }
         }
@@ -131,9 +110,7 @@ struct OnboardingContainerView: View {
 
     // MARK: - Helpers
     private var isFeaturePage: Bool {
-        vm.currentPage == .featureTutor ||
-        vm.currentPage == .featureFeedback ||
-        vm.currentPage == .featureProgress
+        [.featureTutor, .featureFeedback, .featureProgress].contains(vm.currentPage)
     }
 
     private var isQuestionPage: Bool {

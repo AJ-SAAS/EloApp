@@ -3,21 +3,17 @@ import SwiftUI
 struct PrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 20, weight: .bold))  // ← ~2pt bigger than .headline + bold
+            .font(.system(size: 20, weight: .bold))
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 18)     // ← More vertical inner padding (top & bottom)
-            .padding(.horizontal, 20)   // Slightly more horizontal too for balance
+            .padding(.vertical, 18)
+            .padding(.horizontal, 20)
             .background(
-                LinearGradient(
-                    colors: [.blue, .purple],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
+                Color.blue // ✅ Solid blue background
             )
             .cornerRadius(14)
-            .padding(.horizontal)       // Outer horizontal padding (keeps button from edge)
+            .padding(.horizontal)
             .opacity(configuration.isPressed ? 0.85 : 1.0)
-            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)  // Optional: subtle press animation
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
     }
 }

@@ -1,6 +1,8 @@
 import SwiftUI
 import AVFoundation
 import Speech
+import FirebaseAuth
+import FirebaseFirestore
 
 // MARK: - Difficulty Enum
 enum Difficulty: String, CaseIterable {
@@ -9,233 +11,7 @@ enum Difficulty: String, CaseIterable {
     case hard = "Hard"
 }
 
-struct SettingsView: View {
-    @EnvironmentObject var authVM: AuthViewModel
-
-    // MARK: - Preferences
-    @AppStorage("pref_notifications") private var notificationsEnabled = true
-    @AppStorage("pref_sounds") private var soundsEnabled = true
-    @AppStorage("selectedVoice") private var selectedVoice: String = VoiceOption.gbFemale.rawValue
-    @AppStorage("selectedDifficulty") private var selectedDifficulty: String = Difficulty.hard.rawValue
-
-    // MARK: - Permission State
-    @State private var micAvailable =
-        AVAudioSession.sharedInstance().recordPermission == .granted
-    @State private var speechAvailable =
-        SFSpeechRecognizer.authorizationStatus() == .authorized
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 30) {
-
-                    // MARK: - Account Info
-                    VStack(spacing: 8) {
-                        sectionTitle("Account")
-
-                        if let email = authVM.userEmail {
-                            HStack {
-                                Text("Email")
-                                    .foregroundColor(.gray)
-                                Spacer()
-                                Text(email)
-                            }
-                            .padding()
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(14)
-                            .padding(.horizontal)
-                        } else {
-                            Text("Not signed in")
-                                .foregroundColor(.gray)
-                                .padding(.horizontal)
-                        }
-                    }
-
-                    // MARK: - Preferences
-                    VStack(spacing: 8) {
-                        sectionTitle("Preferences")
-
-                        VStack(spacing: 10) {
-                            Toggle("Daily Notifications", isOn: $notificationsEnabled)
-                                .settingsRow()
-
-                            Toggle("Enable Sounds", isOn: $soundsEnabled)
-                                .settingsRow()
-
-                            pickerSection(
-                                title: "Voice",
-                                selection: $selectedVoice,
-                                options: VoiceOption.allCases.map { $0.rawValue }
-                            )
-
-                            pickerSection(
-                                title: "Difficulty",
-                                selection: $selectedDifficulty,
-                                options: Difficulty.allCases.map { $0.rawValue }
-                            )
-                        }
-                    }
-
-                    // MARK: - Voice Access
-                    VStack(spacing: 10) {
-                        sectionTitle("Voice Access")
-
-                        VStack(spacing: 12) {
-                            permissionRow(
-                                icon: "mic.fill",
-                                title: "Microphone",
-                                enabled: micAvailable
-                            )
-
-                            permissionRow(
-                                icon: "waveform",
-                                title: "Speech Recognition",
-                                enabled: speechAvailable
-                            )
-
-                            if !micAvailable || !speechAvailable {
-                                Button("Open Settings") {
-                                    if let url = URL(
-                                        string: UIApplication.openSettingsURLString
-                                    ) {
-                                        UIApplication.shared.open(url)
-                                    }
-                                }
-                                .font(.footnote.bold())
-                                .padding(.top, 6)
-                            }
-                        }
-                        .settingsGroup()
-                    }
-
-                    // MARK: - General
-                    VStack(spacing: 8) {
-                        sectionTitle("General")
-
-                        VStack(spacing: 10) {
-                            SettingsRow(title: "Privacy Policy") {
-                                openLink("https://your-privacy-policy.com")
-                            }
-                            SettingsRow(title: "Terms of Use") {
-                                openLink("https://your-terms.com")
-                            }
-                            SettingsRow(title: "Give Feedback") {
-                                openLink("mailto:feedback@yourapp.com")
-                            }
-                            SettingsRow(title: "Contact Us") {
-                                openLink("mailto:support@yourapp.com")
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-
-                    // MARK: - Account Actions
-                    VStack(spacing: 8) {
-                        sectionTitle("Account Actions")
-
-                        VStack(spacing: 10) {
-                            Button("Delete Account") {
-                                // TODO: Add delete flow (reauth required)
-                            }
-                            .destructiveButton()
-
-                            Button("Restore Purchases") {
-                                // TODO: Restore purchases
-                            }
-                            .secondaryButton()
-
-                            Button("Sign Out") {
-                                authVM.signOut()
-                            }
-                            .primaryButton()
-                        }
-                        .padding(.horizontal)
-                    }
-
-                    Spacer()
-                }
-                .padding(.top, 20)
-            }
-            .navigationTitle("Settings")
-            .onAppear(perform: updatePermissions)
-            .onReceive(
-                NotificationCenter.default.publisher(
-                    for: UIApplication.didBecomeActiveNotification
-                )
-            ) { _ in
-                updatePermissions()
-            }
-        }
-    }
-
-    // MARK: - Helpers
-
-    private func updatePermissions() {
-        micAvailable =
-            AVAudioSession.sharedInstance().recordPermission == .granted
-        speechAvailable =
-            SFSpeechRecognizer.authorizationStatus() == .authorized
-    }
-
-    private func openLink(_ url: String) {
-        if let link = URL(string: url) {
-            UIApplication.shared.open(link)
-        }
-    }
-
-    // MARK: - UI Helpers
-
-    private func sectionTitle(_ text: String) -> some View {
-        Text(text)
-            .font(.title2.bold())
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal)
-    }
-
-    private func permissionRow(
-        icon: String,
-        title: String,
-        enabled: Bool
-    ) -> some View {
-        HStack {
-            Image(systemName: icon)
-            Text(title)
-            Spacer()
-            statusView(enabled)
-        }
-    }
-
-    private func statusView(_ enabled: Bool) -> some View {
-        HStack(spacing: 6) {
-            Circle()
-                .fill(enabled ? .green : .red)
-                .frame(width: 12, height: 12)
-            Text(enabled ? "Enabled" : "Disabled")
-                .foregroundColor(.gray)
-        }
-    }
-
-    private func pickerSection(
-        title: String,
-        selection: Binding<String>,
-        options: [String]
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(title).font(.headline)
-
-            Picker(title, selection: selection) {
-                ForEach(options, id: \.self) {
-                    Text($0).tag($0)
-                }
-            }
-            .pickerStyle(.segmented)
-        }
-        .settingsGroup()
-    }
-}
-
-// MARK: - Reusable Modifiers
-
+// MARK: - View Modifiers
 extension View {
     func settingsGroup() -> some View {
         self
@@ -298,5 +74,244 @@ struct SettingsRow: View {
             .background(Color.gray.opacity(0.1))
             .cornerRadius(14)
         }
+    }
+}
+
+// MARK: - Settings View
+struct SettingsView: View {
+    @EnvironmentObject var authVM: AuthViewModel
+
+    // Preferences
+    @AppStorage("pref_notifications") private var notificationsEnabled = true
+    @AppStorage("pref_sounds") private var soundsEnabled = true
+    @AppStorage("selectedVoice") private var selectedVoice: String = VoiceOption.gbFemale.rawValue
+    @AppStorage("selectedDifficulty") private var selectedDifficulty: String = Difficulty.hard.rawValue
+
+    // Permissions
+    @State private var micAvailable =
+        AVAudioSession.sharedInstance().recordPermission == .granted
+    @State private var speechAvailable =
+        SFSpeechRecognizer.authorizationStatus() == .authorized
+
+    // Delete flow
+    @State private var showDeleteConfirm = false
+    @State private var showPasswordPrompt = false
+    @State private var password = ""
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 30) {
+
+                    // MARK: - Account
+                    VStack(spacing: 8) {
+                        sectionTitle("Account")
+
+                        if let email = authVM.userEmail {
+                            HStack {
+                                Text("Email").foregroundColor(.gray)
+                                Spacer()
+                                Text(email)
+                            }
+                            .settingsRow()
+                        } else {
+                            Text("Not signed in")
+                                .foregroundColor(.gray)
+                                .padding(.horizontal)
+                        }
+                    }
+
+                    // MARK: - Preferences
+                    VStack(spacing: 8) {
+                        sectionTitle("Preferences")
+
+                        Toggle("Daily Notifications", isOn: $notificationsEnabled)
+                            .settingsRow()
+
+                        Toggle("Enable Sounds", isOn: $soundsEnabled)
+                            .settingsRow()
+
+                        pickerSection(
+                            title: "Voice",
+                            selection: $selectedVoice,
+                            options: VoiceOption.allCases.map { $0.rawValue }
+                        )
+
+                        pickerSection(
+                            title: "Difficulty",
+                            selection: $selectedDifficulty,
+                            options: Difficulty.allCases.map { $0.rawValue }
+                        )
+                    }
+
+                    // MARK: - Voice Access
+                    VStack(spacing: 10) {
+                        sectionTitle("Voice Access")
+
+                        VStack(spacing: 12) {
+                            permissionRow(
+                                icon: "mic.fill",
+                                title: "Microphone",
+                                enabled: micAvailable
+                            )
+
+                            permissionRow(
+                                icon: "waveform",
+                                title: "Speech Recognition",
+                                enabled: speechAvailable
+                            )
+
+                            if !micAvailable || !speechAvailable {
+                                Button("Open Settings") {
+                                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                                        UIApplication.shared.open(url)
+                                    }
+                                }
+                                .font(.footnote.bold())
+                                .padding(.top, 6)
+                            }
+                        }
+                        .settingsGroup()
+                    }
+
+                    // MARK: - General
+                    VStack(spacing: 8) {
+                        sectionTitle("General")
+
+                        SettingsRow(title: "Website") {
+                            openLink("https://www.tryeloenglish.xyz/")
+                        }
+
+                        SettingsRow(title: "Privacy Policy") {
+                            openLink("https://www.tryeloenglish.xyz/privacy")
+                        }
+
+                        SettingsRow(title: "Terms of Use") {
+                            openLink("https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
+                        }
+
+                        SettingsRow(title: "Restore Subscription") {
+                            openLink("https://apps.apple.com/account/subscriptions")
+                        }
+
+                        SettingsRow(title: "Contact Us") {
+                            openLink("mailto:tryeloenglishsupport@gmail.com")
+                        }
+
+                        SettingsRow(title: "Share Feedback") {
+                            openLink("mailto:tryeloenglishsupport@gmail.com?subject=Feedback%20on%20Elo%20App")
+                        }
+                    }
+                    .padding(.horizontal)
+
+                    // MARK: - Account Actions
+                    VStack(spacing: 12) {
+                        sectionTitle("Account Actions")
+
+                        Button("Sign Out") {
+                            authVM.signOut()
+                        }
+                        .primaryButton()
+
+                        Button("Delete Account") {
+                            showDeleteConfirm = true
+                        }
+                        .destructiveButton()
+                    }
+                    .padding(.horizontal)
+                }
+                .padding(.top, 20)
+            }
+            .navigationTitle("Settings")
+            .onAppear(perform: updatePermissions)
+
+            // First confirmation
+            .alert("Delete Account?",
+                   isPresented: $showDeleteConfirm) {
+                Button("Delete", role: .destructive) {
+                    Task {
+                        await authVM.deleteAccount {
+                            showPasswordPrompt = true
+                        }
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This will permanently delete your account and data. This action cannot be undone.")
+            }
+
+            // Re-auth password prompt
+            .alert("Confirm Password",
+                   isPresented: $showPasswordPrompt) {
+                SecureField("Password", text: $password)
+                Button("Confirm Delete", role: .destructive) {
+                    Task {
+                        await authVM.deleteAccount(password: password)
+                        password = ""
+                    }
+                }
+                Button("Cancel", role: .cancel) {
+                    password = ""
+                }
+            } message: {
+                Text("For security reasons, please re-enter your password.")
+            }
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func updatePermissions() {
+        micAvailable =
+            AVAudioSession.sharedInstance().recordPermission == .granted
+        speechAvailable =
+            SFSpeechRecognizer.authorizationStatus() == .authorized
+    }
+
+    private func openLink(_ url: String) {
+        if let link = URL(string: url) {
+            UIApplication.shared.open(link)
+        }
+    }
+
+    private func sectionTitle(_ text: String) -> some View {
+        Text(text)
+            .font(.title2.bold())
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal)
+    }
+
+    private func permissionRow(
+        icon: String,
+        title: String,
+        enabled: Bool
+    ) -> some View {
+        HStack {
+            Image(systemName: icon)
+            Text(title)
+            Spacer()
+            Circle()
+                .fill(enabled ? .green : .red)
+                .frame(width: 12, height: 12)
+        }
+    }
+
+    private func pickerSection(
+        title: String,
+        selection: Binding<String>,
+        options: [String]
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.headline)
+
+            Picker(title, selection: selection) {
+                ForEach(options, id: \.self) {
+                    Text($0).tag($0)
+                }
+            }
+            .pickerStyle(.segmented)
+        }
+        .settingsGroup()
     }
 }

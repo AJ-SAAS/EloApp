@@ -13,11 +13,11 @@ struct QuestionNotificationsView: View {
                     .foregroundColor(.purple)
                 
                 Text("I will remind you of your training time every day")
-                    .font(.title2.bold())
+                    .font(.system(size: 20, weight: .semibold))
                     .multilineTextAlignment(.center)
                 
                 Text("Allow notifications not to miss your practice time.")
-                    .font(.title3)
+                    .font(.system(size: 18, weight: .regular))
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
@@ -26,7 +26,6 @@ struct QuestionNotificationsView: View {
             }
             .padding()
             
-            // Back button
             Button {
                 vm.previousPage()
             } label: {
@@ -37,9 +36,7 @@ struct QuestionNotificationsView: View {
             }
         }
         .onAppear {
-            Task {
-                await vm.requestNotificationPermission()
-            }
+            Task { await vm.requestNotificationPermission() }
         }
     }
 }

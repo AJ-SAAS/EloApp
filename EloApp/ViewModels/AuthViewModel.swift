@@ -1,5 +1,6 @@
 import Foundation
 import FirebaseAuth
+import FirebaseFirestore
 import Combine
 import SwiftUI
 
@@ -18,36 +19,41 @@ final class AuthViewModel: ObservableObject {
         startListening()
     }
 
-    // MARK: - Auth Listener
+    // MARK: - Auth State Listener
     private func startListening() {
-        handle = Auth.auth()
-            .addStateDidChangeListener { [weak self] _, user in
-                guard let self else { return }
-                self.isSignedIn = user != nil
-                self.hasEmailAccount = user?.providerData.contains {
-                    $0.providerID == EmailAuthProviderID
-                } ?? false
+        handle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+            guard let self else { return }
+
+            self.isSignedIn = user != nil
+            self.hasEmailAccount =
+                user?.providerData.contains(where: { $0.providerID == EmailAuthProviderID }) ?? false
+
+            if self.isSignedIn && !ProgressTracker.shared.onboardingCompleted {
+                ProgressTracker.shared.markOnboardingCompleted()
             }
+        }
     }
 
-    // MARK: - ✅ REQUIRED BY VIEWS (DO NOT REMOVE)
-    func completeOnboarding() {
-        ProgressTracker.shared.markOnboardingCompleted()
-    }
-
+    // MARK: - User Info
     var userEmail: String? {
         Auth.auth().currentUser?.email
     }
 
-    // MARK: - Auth Actions
+    var currentUserUID: String? {
+        Auth.auth().currentUser?.uid
+    }
+
+    // MARK: - Email Auth (USED BY AuthView)
     func register(email: String, password: String) async -> Bool {
         isLoading = true
         errorMessage = nil
-
         defer { isLoading = false }
 
         do {
-            _ = try await Auth.auth().createUser(withEmail: email, password: password)
+            let result = try await Auth.auth()
+                .createUser(withEmail: email, password: password)
+
+            print("✅ Registered user:", result.user.uid)
             return true
         } catch {
             errorMessage = error.localizedDescription
@@ -58,11 +64,13 @@ final class AuthViewModel: ObservableObject {
     func signIn(email: String, password: String) async -> Bool {
         isLoading = true
         errorMessage = nil
-
         defer { isLoading = false }
 
         do {
-            try await Auth.auth().signIn(withEmail: email, password: password)
+            let result = try await Auth.auth()
+                .signIn(withEmail: email, password: password)
+
+            print("✅ Signed in user:", result.user.uid)
             return true
         } catch {
             errorMessage = error.localizedDescription
@@ -70,16 +78,65 @@ final class AuthViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Logout
+    // MARK: - Sign Out
     func signOut() {
         do {
             try Auth.auth().signOut()
-            ProgressTracker.shared.resetOnboarding()
+            print("👋 Signed out")
         } catch {
-            print("Sign out failed:", error.localizedDescription)
+            print("❌ Sign out failed:", error.localizedDescription)
         }
     }
 
+    // MARK: - Delete Account (Apple-compliant re-auth)
+    func deleteAccount(
+        password: String? = nil,
+        onReAuthRequired: (() -> Void)? = nil
+    ) async {
+
+        guard let user = Auth.auth().currentUser else { return }
+
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+
+        do {
+            // Re-auth if password provided
+            if let password,
+               let email = user.email {
+                let credential = EmailAuthProvider.credential(
+                    withEmail: email,
+                    password: password
+                )
+                try await user.reauthenticate(with: credential)
+            }
+
+            // Delete Firestore user document
+            try await Firestore.firestore()
+                .collection("users")
+                .document(user.uid)
+                .delete()
+
+            // Delete Auth user
+            try await user.delete()
+
+            print("🔥 Account permanently deleted")
+
+        } catch let error as NSError {
+            if error.code == AuthErrorCode.requiresRecentLogin.rawValue {
+                onReAuthRequired?()
+            } else {
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    // MARK: - Onboarding
+    func completeOnboarding() {
+        ProgressTracker.shared.markOnboardingCompleted()
+    }
+
+    // MARK: - Cleanup
     deinit {
         if let handle {
             Auth.auth().removeStateDidChangeListener(handle)

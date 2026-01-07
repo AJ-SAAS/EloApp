@@ -2,68 +2,44 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject var authVM: AuthViewModel
+    
+    // Shared singleton for basic progress flags (streak, etc.)
     @StateObject private var progress = ProgressTracker.shared
-    @State private var showSplash = true
+    
+    // Shared view model for UI progress display
+    @StateObject private var progressVM = ProgressViewModel()
 
     var body: some View {
-        ZStack {
-            if showSplash {
-                splashScreen
-            } else {
-                mainContent
-            }
-        }
-        .animation(.easeInOut, value: showSplash)
-    }
-
-    // MARK: - Splash Screen
-    private var splashScreen: some View {
-        ZStack {
-            Color.white.ignoresSafeArea()
-            Image("elologo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 180, height: 180)
-                .cornerRadius(36)
-                .rotationEffect(.degrees(showSplash ? -15 : 0))
-                .scaleEffect(showSplash ? 0.8 : 1.2)
-                .opacity(showSplash ? 0 : 1)
-                .onAppear {
-                    withAnimation(.easeOut(duration: 0.8)) {
-                        // Tilt → straighten → fade in
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                        withAnimation(.spring(response: 0.5, dampingFraction: 0.5, blendDuration: 0.5)) {
-                            showSplash = false
-                        }
-                    }
-                }
-        }
-    }
-
-    // MARK: - Main App Content
-    private var mainContent: some View {
         Group {
-            // ✅ Fully authenticated user
+            // ✅ Fully authenticated: go to main app
             if authVM.isSignedIn && authVM.hasEmailAccount {
                 MainTabView()
+                    .environmentObject(progressVM)
             }
-            // ⛔ Signed in but missing email provider
+            // ⛔ Signed in but no email linked (e.g., Apple sign-in only)
             else if authVM.isSignedIn {
                 NavigationStack {
                     AuthView()
                 }
             }
-            // ❌ Not signed in
+            // ❌ Not signed in at all
             else {
-                if progress.onboardingCompleted {
+                if ProgressTracker.shared.onboardingCompleted {
+                    // Onboarding done before → go to sign in/up
                     NavigationStack {
                         AuthView()
+                            .environmentObject(authVM)
                     }
                 } else {
+                    // First time user → show onboarding
                     OnboardingContainerView()
+                        .environmentObject(authVM)  // Critical: paywall needs authVM!
                 }
             }
+        }
+        // Optional: Refresh progress data when view appears
+        .onAppear {
+            progressVM.load()  // Ensures latest XP, streak, etc.
         }
     }
 }

@@ -1,40 +1,43 @@
-// Views/Onboarding/FeatureIntroView.swift
-
 import SwiftUI
 
 struct FeatureIntroView: View {
     let title: String
     let subtitle: String
-    
+    let imageName: String
+
     var body: some View {
-        VStack {
-            Spacer()  // Pushes everything to bottom third
-            
-            // Optional illustration placeholder (you can replace with real images later)
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.gray.opacity(0.15))
-                .frame(height: 280)
-                .padding(.horizontal)
-                .overlay(
-                    Image(systemName: "photo")
-                        .font(.system(size: 80))
-                        .foregroundColor(.gray.opacity(0.5))
-                )
-            
-            VStack(alignment: .leading, spacing: 20) {
+        VStack(spacing: 0) {
+
+            // ⬇️ Push image down slightly from top
+            Spacer(minLength: 40)
+
+            // IMAGE
+            Image(imageName)
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: .infinity)
+                .clipped()
+                .padding(.horizontal, 10)
+
+            // ⬇️ More space between image and text
+            Spacer(minLength: 32)
+
+            // TEXT
+            VStack(alignment: .leading, spacing: 14) {
                 Text(title)
-                    .font(.system(size: 48, weight: .bold))  // Same size as Welcome title
+                    .font(.system(size: 36, weight: .regular, design: .serif))
                     .multilineTextAlignment(.leading)
-                
+
                 Text(subtitle)
-                    .font(.title2)
+                    .font(.system(size: 20))
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.leading)
             }
-            .padding(.horizontal)
-            
-            Spacer().frame(height: 80)  // Space before "Continue" button
+            .padding(.horizontal, 24)
+
+            // ⬇️ Less space before button so text sits lower
+            Spacer(minLength: 24)
         }
-        .padding()
+        .padding(.bottom, 24)
     }
 }

@@ -9,7 +9,7 @@ struct QuestionReminderTimeView: View {
                 Spacer().frame(height: 40)
                 
                 Text("Pick a time of the day to start your practice every day")
-                    .font(.largeTitle.bold())
+                    .font(.system(size: 36, weight: .regular, design: .serif))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
                 
@@ -25,7 +25,6 @@ struct QuestionReminderTimeView: View {
             }
             .padding()
             
-            // Back button
             Button {
                 vm.previousPage()
             } label: {
