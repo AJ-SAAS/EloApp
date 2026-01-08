@@ -19,17 +19,29 @@ final class ProgressViewModel: ObservableObject {
     @Published var weeklyGrowthPercent: Int = 0
     @Published var level: Int = 1
 
+    // MARK: - Daily Word / Premium Properties
+    @Published var dailyWordsUsed: Int = 0
+    @Published var canPracticeDailyWord: Bool = true
+    @Published var hasPremiumAccess: Bool = false
+
     private let tracker = ProgressTracker.shared
 
-    // MARK: - XP per word tracking
-    private var rewardedWords: Set<String> {
-        get { Set(UserDefaults.standard.stringArray(forKey: "elo_xpGivenWords") ?? []) }
-        set { UserDefaults.standard.set(Array(newValue), forKey: "elo_xpGivenWords") }
+    // MARK: - Task-Based XP Tracking
+    /// key = wordID, value = set of completed tasks (0 = word, 1 = sentence, 2 = memory, 3 = completion bonus)
+    private var rewardedWordTasks: [String: Set<Int>] {
+        get {
+            (UserDefaults.standard.dictionary(forKey: "elo_rewardedWordTasks") as? [String: [Int]])?.mapValues { Set($0) } ?? [:]
+        }
+        set {
+            let dict = newValue.mapValues { Array($0) }
+            UserDefaults.standard.set(dict, forKey: "elo_rewardedWordTasks")
+        }
     }
 
     // MARK: - Initialization
     init() {
         load()
+        hasPremiumAccess = tracker.hasPremiumAccess
     }
 
     // MARK: - Load Progress
@@ -43,43 +55,54 @@ final class ProgressViewModel: ObservableObject {
         currentStreak = tracker.currentStreak
         weekly = tracker.weeklyCompletion
 
-        // Weekly growth placeholder
         weeklyGrowthPercent = Int.random(in: 0...50)
 
-        // Level calculation based on XP
         level = xp / 1000 + 1
-
-        // Level up check
         didLevelUp = false
         if xp >= level * 1000 {
             didLevelUp = true
         }
 
-        // Reset week if needed
-        tracker.resetWeekIfNeeded()
+        dailyWordsUsed = tracker.dailyWordsUsed
+        canPracticeDailyWord = tracker.canPracticeWord(isPremium: hasPremiumAccess)
     }
 
-    // MARK: - Word-based XP addition
-    func addXP(forWordID wordID: String, amount: Int) {
-        // Check if XP already rewarded for this word
-        guard !rewardedWords.contains(wordID) else { return }
+    // MARK: - Add XP for a specific task
+    /// task: 0 = say word, 1 = say sentence, 2 = memory, 3 = completion bonus
+    func addXP(forWordID wordID: String, task: Int, amount: Int) {
+        var tasks = rewardedWordTasks[wordID] ?? []
 
-        // Add word to rewarded set
-        var newSet = rewardedWords
-        newSet.insert(wordID)
-        rewardedWords = newSet
+        // Only add XP if this task hasn't been rewarded yet
+        guard !tasks.contains(task) else { return }
 
-        // Update XP
-        let newXP = xp + amount
-        xp = newXP
-        UserDefaults.standard.set(newXP, forKey: "elo_totalXP")
+        // Update task tracking
+        tasks.insert(task)
+        var updatedDict = rewardedWordTasks
+        updatedDict[wordID] = tasks
+        rewardedWordTasks = updatedDict
+
+        // Add XP
+        xp += amount
+        UserDefaults.standard.set(xp, forKey: "elo_totalXP")
 
         // Check level up
-        let newLevel = newXP / 1000 + 1
+        let newLevel = xp / 1000 + 1
         if newLevel > level {
             level = newLevel
             didLevelUp = true
         }
+    }
+
+    // MARK: - Check if task is completed for a word
+    func isTaskCompleted(wordID: String, task: Int) -> Bool {
+        rewardedWordTasks[wordID]?.contains(task) ?? false
+    }
+
+    // MARK: - Increment Daily Word Usage
+    func incrementDailyWordCount() {
+        tracker.incrementDailyWordCount()
+        dailyWordsUsed = tracker.dailyWordsUsed
+        canPracticeDailyWord = tracker.canPracticeWord(isPremium: hasPremiumAccess)
     }
 
     // MARK: - Refresh
@@ -90,5 +113,17 @@ final class ProgressViewModel: ObservableObject {
     // MARK: - Computed Properties
     var practiceMinutes: Int {
         practiceSeconds / 60
+    }
+
+    // MARK: - Update Premium Status
+    func updatePremiumStatus(isPremium: Bool) {
+        hasPremiumAccess = isPremium
+        tracker.hasPremiumAccess = isPremium
+        canPracticeDailyWord = tracker.canPracticeWord(isPremium: isPremium)
+    }
+
+    // MARK: - Reset XP Tracking (optional, for testing)
+    func resetXPTracking() {
+        UserDefaults.standard.removeObject(forKey: "elo_rewardedWordTasks")
     }
 }

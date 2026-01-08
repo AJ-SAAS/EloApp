@@ -6,8 +6,9 @@ import RevenueCat
 @main
 struct EloAppApp: App {
 
-    // Keep the AuthViewModel as environment object for the rest of the app
+    // MARK: - StateObjects for environment
     @StateObject private var authVM = AuthViewModel()
+    @StateObject private var purchaseVM = PurchaseViewModel() // new
 
     init() {
         FirebaseApp.configure()
@@ -15,7 +16,7 @@ struct EloAppApp: App {
         // Configure RevenueCat SDK
         Purchases.configure(withAPIKey: "appl_dJDZHvEwwSlXdvdMOVnlmgUXcRq")
         
-        // If user is already signed in with Firebase, log them in to RevenueCat
+        // Log in to RevenueCat if user already signed in
         if let user = Auth.auth().currentUser {
             Task {
                 do {
@@ -31,10 +32,11 @@ struct EloAppApp: App {
 
     var body: some Scene {
         WindowGroup {
-            // Start with the animated splash screen
+            // Root view
             SplashView()
-                // Pass the authVM down through the hierarchy
                 .environmentObject(authVM)
+                .environmentObject(purchaseVM) // inject PurchaseViewModel globally
+                .preferredColorScheme(.light)   // force light mode
         }
     }
 }

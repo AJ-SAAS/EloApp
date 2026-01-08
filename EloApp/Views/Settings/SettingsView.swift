@@ -3,6 +3,7 @@ import AVFoundation
 import Speech
 import FirebaseAuth
 import FirebaseFirestore
+import RevenueCat
 
 // MARK: - Difficulty Enum
 enum Difficulty: String, CaseIterable {
@@ -32,18 +33,10 @@ extension View {
     func primaryButton() -> some View {
         self
             .foregroundColor(.white)
+            .fontWeight(.bold)
             .frame(maxWidth: .infinity)
             .padding()
             .background(Color.black)
-            .cornerRadius(14)
-    }
-
-    func secondaryButton() -> some View {
-        self
-            .foregroundColor(.blue)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(Color.blue.opacity(0.1))
             .cornerRadius(14)
     }
 
@@ -57,7 +50,7 @@ extension View {
     }
 }
 
-// MARK: - Settings Row
+// MARK: - Settings Row (Standard subtle row)
 struct SettingsRow: View {
     let title: String
     let action: () -> Void
@@ -74,18 +67,20 @@ struct SettingsRow: View {
             .background(Color.gray.opacity(0.1))
             .cornerRadius(14)
         }
+        .padding(.horizontal) // Ensures consistent horizontal margins
     }
 }
 
 // MARK: - Settings View
 struct SettingsView: View {
     @EnvironmentObject var authVM: AuthViewModel
+    @EnvironmentObject var purchaseVM: PurchaseViewModel
 
     // Preferences
     @AppStorage("pref_notifications") private var notificationsEnabled = true
     @AppStorage("pref_sounds") private var soundsEnabled = true
     @AppStorage("selectedVoice") private var selectedVoice: String = VoiceOption.gbFemale.rawValue
-    @AppStorage("selectedDifficulty") private var selectedDifficulty: String = Difficulty.hard.rawValue
+    @AppStorage("selectedDifficulty") private var selectedDifficulty: String = Difficulty.medium.rawValue
 
     // Permissions
     @State private var micAvailable =
@@ -93,10 +88,12 @@ struct SettingsView: View {
     @State private var speechAvailable =
         SFSpeechRecognizer.authorizationStatus() == .authorized
 
-    // Delete flow
+    // Delete / reset password flow
     @State private var showDeleteConfirm = false
     @State private var showPasswordPrompt = false
+    @State private var showResetPasswordPrompt = false
     @State private var password = ""
+    @State private var newPassword = ""
 
     var body: some View {
         NavigationStack {
@@ -108,12 +105,23 @@ struct SettingsView: View {
                         sectionTitle("Account")
 
                         if let email = authVM.userEmail {
+                            // Email display - consistent styling without extra width
                             HStack {
-                                Text("Email").foregroundColor(.gray)
+                                Text("Email")
+                                    .foregroundColor(.gray)
                                 Spacer()
                                 Text(email)
+                                    .foregroundColor(.secondary)
                             }
-                            .settingsRow()
+                            .padding()
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(14)
+                            .padding(.horizontal)
+
+                            // Reset Password - now identical width/height to others
+                            SettingsRow(title: "Reset Password") {
+                                showResetPasswordPrompt = true
+                            }
                         } else {
                             Text("Not signed in")
                                 .foregroundColor(.gray)
@@ -174,6 +182,41 @@ struct SettingsView: View {
                         .settingsGroup()
                     }
 
+                    // MARK: - Subscriptions
+                    VStack(spacing: 12) {
+                        sectionTitle("Subscriptions")
+
+                        if purchaseVM.hasPremiumAccess() {
+                            // User has premium → subtle checkmark row
+                            SettingsRow(title: "Elo Premium ✓") {
+                                // Optional: could open a premium features screen
+                            }
+                        } else {
+                            // User does NOT have premium → prominent black button
+                            Button("👑 Get Elo Premium") {
+                                Task {
+                                    if let package = purchaseVM.offerings?.current?.availablePackages.first {
+                                        _ = await purchaseVM.purchase(package: package)
+                                    } else {
+                                        print("⚠️ No package available to purchase")
+                                    }
+                                }
+                            }
+                            .primaryButton()
+                            .padding(.horizontal)
+                        }
+
+                        SettingsRow(title: "Manage Subscription") {
+                            openLink("https://apps.apple.com/account/subscriptions")
+                        }
+
+                        SettingsRow(title: "Restore Subscription") {
+                            Task {
+                                await purchaseVM.restorePurchases()
+                            }
+                        }
+                    }
+
                     // MARK: - General
                     VStack(spacing: 8) {
                         sectionTitle("General")
@@ -188,10 +231,6 @@ struct SettingsView: View {
 
                         SettingsRow(title: "Terms of Use") {
                             openLink("https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
-                        }
-
-                        SettingsRow(title: "Restore Subscription") {
-                            openLink("https://apps.apple.com/account/subscriptions")
                         }
 
                         SettingsRow(title: "Contact Us") {
@@ -212,11 +251,13 @@ struct SettingsView: View {
                             authVM.signOut()
                         }
                         .primaryButton()
+                        .padding(.horizontal)
 
                         Button("Delete Account") {
                             showDeleteConfirm = true
                         }
                         .destructiveButton()
+                        .padding(.horizontal)
                     }
                     .padding(.horizontal)
                 }
@@ -225,7 +266,7 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .onAppear(perform: updatePermissions)
 
-            // First confirmation
+            // MARK: - Alerts (unchanged)
             .alert("Delete Account?",
                    isPresented: $showDeleteConfirm) {
                 Button("Delete", role: .destructive) {
@@ -240,7 +281,6 @@ struct SettingsView: View {
                 Text("This will permanently delete your account and data. This action cannot be undone.")
             }
 
-            // Re-auth password prompt
             .alert("Confirm Password",
                    isPresented: $showPasswordPrompt) {
                 SecureField("Password", text: $password)
@@ -256,11 +296,33 @@ struct SettingsView: View {
             } message: {
                 Text("For security reasons, please re-enter your password.")
             }
+
+            .alert("Reset Password",
+                   isPresented: $showResetPasswordPrompt) {
+                SecureField("New Password", text: $newPassword)
+                Button("Confirm") {
+                    Task {
+                        if let user = Auth.auth().currentUser {
+                            do {
+                                try await user.updatePassword(to: newPassword)
+                                print("✅ Password updated")
+                                newPassword = ""
+                            } catch {
+                                print("❌ Failed to update password:", error.localizedDescription)
+                            }
+                        }
+                    }
+                }
+                Button("Cancel", role: .cancel) {
+                    newPassword = ""
+                }
+            } message: {
+                Text("Enter a new password to update your account.")
+            }
         }
     }
 
     // MARK: - Helpers
-
     private func updatePermissions() {
         micAvailable =
             AVAudioSession.sharedInstance().recordPermission == .granted

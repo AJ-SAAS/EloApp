@@ -28,7 +28,7 @@ struct WelcomeView: View {
                     // One-time auto-swipe after 1 second
                     guard !hasAutoSwiped else { return }
                     hasAutoSwiped = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
                         withAnimation(.easeInOut(duration: 0.5)) {
                             currentImageIndex = 1
                         }

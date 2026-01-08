@@ -11,6 +11,8 @@ final class OnboardingViewModel: ObservableObject {
 
     // MARK: - Personalization answers
     @Published var userName: String = ""
+    @Published var shortTermGoals: Set<String> = []  // ADD THIS
+    @Published var longTermGoal: String = ""          // ADD THIS
     @Published var nativeLanguage: String = ""
     @Published var englishLevel: String = ""
     @Published var selectedInterests: Set<String> = []
@@ -28,9 +30,12 @@ final class OnboardingViewModel: ObservableObject {
         case featureFeedback
         case featureProgress
         case freeTrialToggle1
-        case freeTrialInfo1      // after first toggle
+        case freeTrialInfo1
         case paywall1
         case questionName
+        case questionShortTermGoals
+        case questionLongTermGoals
+        case goalsConfirmation  // ADD THIS
         case questionNativeLang
         case questionLevel
         case questionInterests
@@ -40,7 +45,7 @@ final class OnboardingViewModel: ObservableObject {
         case questionNotifications
         case preparingPlan
         case freeTrialToggle2
-        case freeTrialInfo2      // after second toggle
+        case freeTrialInfo2
         case paywall2
         case authSetup
     }

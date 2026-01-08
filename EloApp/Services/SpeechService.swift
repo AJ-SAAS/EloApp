@@ -6,10 +6,9 @@ import Combine
 final class SpeechService: ObservableObject {
 
     @Published var isRecording = false
-
-    // ✅ NEW
     @Published var micAuthorized = false
     @Published var speechAuthorized = false
+    @Published var currentAmplitude: Float = 0.0
 
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
     private let audioEngine = AVAudioEngine()
@@ -17,6 +16,8 @@ final class SpeechService: ObservableObject {
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
     private var completion: ((String) -> Void)?
+
+    private var silenceTimer: Timer?
 
     // MARK: - Permissions
 
@@ -34,7 +35,6 @@ final class SpeechService: ObservableObject {
         }
     }
 
-    // ✅ NEW
     var micAvailable: Bool {
         micAuthorized && speechAuthorized
     }
@@ -48,7 +48,6 @@ final class SpeechService: ObservableObject {
         }
 
         self.completion = completion
-
         recognitionTask?.cancel()
         recognitionTask = nil
 
@@ -65,16 +64,23 @@ final class SpeechService: ObservableObject {
         inputNode.removeTap(onBus: 0)
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
             self.recognitionRequest?.append(buffer)
+
+            // Update amplitude
+            self.updateAmplitude(buffer: buffer)
         }
 
         audioEngine.prepare()
         try? audioEngine.start()
         isRecording = true
 
+        // Reset silence timer
+        resetSilenceTimer()
+
         recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest!) { result, error in
             if let result = result {
                 DispatchQueue.main.async {
                     completion(result.bestTranscription.formattedString)
+                    self.resetSilenceTimer()
                 }
             }
 
@@ -86,6 +92,7 @@ final class SpeechService: ObservableObject {
 
     func stopRecording() {
         audioEngine.stop()
+        audioEngine.inputNode.removeTap(onBus: 0)
         recognitionRequest?.endAudio()
         recognitionTask?.cancel()
 
@@ -94,6 +101,32 @@ final class SpeechService: ObservableObject {
 
         DispatchQueue.main.async {
             self.isRecording = false
+            self.currentAmplitude = 0.0
+        }
+
+        silenceTimer?.invalidate()
+        silenceTimer = nil
+    }
+
+    // MARK: - Amplitude / Waveform
+    private func updateAmplitude(buffer: AVAudioPCMBuffer) {
+        guard let channelData = buffer.floatChannelData?[0] else { return }
+        let frameLength = Int(buffer.frameLength)
+        var sum: Float = 0
+        for i in 0..<frameLength {
+            sum += channelData[i] * channelData[i]
+        }
+        let rms = sqrt(sum / Float(frameLength))
+        DispatchQueue.main.async {
+            self.currentAmplitude = rms
+        }
+    }
+
+    // MARK: - Auto stop after silence
+    private func resetSilenceTimer() {
+        silenceTimer?.invalidate()
+        silenceTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { [weak self] _ in
+            self?.stopRecording()
         }
     }
 }

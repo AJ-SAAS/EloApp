@@ -7,11 +7,18 @@ final class ProgressTracker: ObservableObject {
     static let shared = ProgressTracker()
     private let defaults = UserDefaults.standard
 
+    // MARK: - Free Limits
+    static let freeWordsPerDay = 3
+
     // MARK: - Reactive onboarding flag
     @Published private(set) var onboardingCompleted: Bool
 
+    // MARK: - Premium Access
+    @Published var hasPremiumAccess: Bool = false // Track premium access
+
     private init() {
         self.onboardingCompleted = defaults.bool(forKey: Key.onboardingCompleted)
+        resetDailyWordsIfNeeded()
     }
 
     // MARK: - Keys
@@ -25,36 +32,47 @@ final class ProgressTracker: ObservableObject {
         static let longestStreak = "elo_longestStreak"
         static let lastPracticeDate = "elo_lastPracticeDate"
         static let onboardingCompleted = "elo_onboardingCompleted"
+
+        static let dailyWordsCount = "elo_dailyWordsCount"
+        static let dailyWordsDate = "elo_dailyWordsDate"
+    }
+
+    // MARK: - Daily Word Limit
+    var dailyWordsUsed: Int {
+        resetDailyWordsIfNeeded()
+        return defaults.integer(forKey: Key.dailyWordsCount)
+    }
+
+    /// Check if user can practice the daily word
+    func canPracticeWord(isPremium: Bool) -> Bool {
+        isPremium || dailyWordsUsed < Self.freeWordsPerDay
+    }
+
+    /// Increment daily word usage counter
+    func incrementDailyWordCount() {
+        resetDailyWordsIfNeeded()
+        defaults.set(dailyWordsUsed + 1, forKey: Key.dailyWordsCount)
+    }
+
+    /// Reset daily word counter if it's a new day
+    private func resetDailyWordsIfNeeded() {
+        let today = Calendar.current.startOfDay(for: Date())
+        let lastDate = defaults.object(forKey: Key.dailyWordsDate) as? Date
+
+        if lastDate == nil || !Calendar.current.isDate(today, inSameDayAs: lastDate!) {
+            defaults.set(0, forKey: Key.dailyWordsCount)
+            defaults.set(today, forKey: Key.dailyWordsDate)
+        }
     }
 
     // MARK: - Computed Properties
-    var totalPracticeSeconds: Int {
-        defaults.integer(forKey: Key.practiceSeconds)
-    }
-
-    var wordsSpoken: Int {
-        defaults.integer(forKey: Key.wordsSpoken)
-    }
-
-    var sentencesSpoken: Int {
-        defaults.integer(forKey: Key.sentencesSpoken)
-    }
-
-    var xp: Int {
-        defaults.integer(forKey: Key.xp)
-    }
-
-    var daysPracticing: Int {
-        defaults.integer(forKey: Key.daysPracticing)
-    }
-
-    var currentStreak: Int {
-        defaults.integer(forKey: Key.streak)
-    }
-
-    var longestStreak: Int {
-        defaults.integer(forKey: Key.longestStreak)
-    }
+    var totalPracticeSeconds: Int { defaults.integer(forKey: Key.practiceSeconds) }
+    var wordsSpoken: Int { defaults.integer(forKey: Key.wordsSpoken) }
+    var sentencesSpoken: Int { defaults.integer(forKey: Key.sentencesSpoken) }
+    var xp: Int { defaults.integer(forKey: Key.xp) }
+    var daysPracticing: Int { defaults.integer(forKey: Key.daysPracticing) }
+    var currentStreak: Int { defaults.integer(forKey: Key.streak) }
+    var longestStreak: Int { defaults.integer(forKey: Key.longestStreak) }
 
     var weeklyCompletion: [Int: Bool] {
         var dict: [Int: Bool] = [:]
@@ -74,13 +92,12 @@ final class ProgressTracker: ObservableObject {
         defaults.set(true, forKey: Key.onboardingCompleted)
     }
 
-    // ✅🔥 ADD THIS (LOGOUT FIX)
     func resetOnboarding() {
         onboardingCompleted = false
         defaults.set(false, forKey: Key.onboardingCompleted)
     }
 
-    // MARK: - Public Tracking
+    // MARK: - Tracking
     func trackPractice(seconds: Int) {
         addInt(seconds, for: Key.practiceSeconds)
         updateDayTracking()
@@ -116,38 +133,23 @@ final class ProgressTracker: ObservableObject {
 
     private func updateStreak(on today: Date, lastDate: Date?) {
         let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: today)!
-        let currentStreak = defaults.integer(forKey: Key.streak)
+        let current = defaults.integer(forKey: Key.streak)
 
         if let last = lastDate, Calendar.current.isDate(last, inSameDayAs: yesterday) {
-            let newStreak = currentStreak + 1
+            let newStreak = current + 1
             defaults.set(newStreak, forKey: Key.streak)
-
-            if newStreak > defaults.integer(forKey: Key.longestStreak) {
-                defaults.set(newStreak, forKey: Key.longestStreak)
-            }
+            defaults.set(max(newStreak, longestStreak), forKey: Key.longestStreak)
         } else {
             defaults.set(1, forKey: Key.streak)
         }
     }
 
-    // MARK: - Weekly Tracking
     private func updateWeeklyCompletion() {
         let weekday = Calendar.current.component(.weekday, from: Date())
         defaults.set(true, forKey: "elo_weekday_\(weekday)")
     }
 
-    func resetWeekIfNeeded() {
-        let todayWeekday = Calendar.current.component(.weekday, from: Date())
-        if todayWeekday == 1 {
-            for day in 1...7 {
-                defaults.set(false, forKey: "elo_weekday_\(day)")
-            }
-        }
-    }
-
-    // MARK: - Helpers
     private func addInt(_ value: Int, for key: String) {
-        let current = defaults.integer(forKey: key)
-        defaults.set(current + value, forKey: key)
+        defaults.set(defaults.integer(forKey: key) + value, forKey: key)
     }
 }

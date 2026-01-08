@@ -12,7 +12,7 @@ final class WordViewModel: ObservableObject {
     @Published var wordCompleted = false
 
     // MARK: - Difficulty (from Settings)
-    @AppStorage("selectedDifficulty") private var selectedDifficulty: String = "Hard" {
+    @AppStorage("selectedDifficulty") private var selectedDifficulty: String = "Medium" {
         didSet {
             // Automatically refresh words when difficulty changes
             refreshWordsForCurrentDifficulty()

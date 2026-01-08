@@ -49,7 +49,7 @@ struct AuthView: View {
                     .frame(maxWidth: .infinity)
                     .background(
                         LinearGradient(
-                            colors: [.blue, .purple],
+                            colors: [.black],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )

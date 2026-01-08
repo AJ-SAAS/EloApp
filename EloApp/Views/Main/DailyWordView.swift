@@ -17,9 +17,25 @@ enum VoiceOption: String, CaseIterable {
     }
 }
 
+// MARK: - Waveform View
+struct WaveformView: View {
+    var level: Float // 0 → 1
+    
+    var body: some View {
+        Circle()
+            .stroke(Color.blue.opacity(0.6), lineWidth: 4)
+            .frame(width: CGFloat(100 + level * 50), height: CGFloat(100 + level * 50))
+            .animation(.easeOut(duration: 0.05), value: level)
+    }
+}
+
+// MARK: - DailyWordView
 struct DailyWordView: View {
     @StateObject private var vm = WordViewModel()
     @StateObject private var speech = SpeechService()
+    
+    // ✅ Use shared environment object for PurchaseViewModel
+    @EnvironmentObject private var purchaseVM: PurchaseViewModel
     @EnvironmentObject private var progressVM: ProgressViewModel
     
     @State private var speechSynthesizer = AVSpeechSynthesizer()
@@ -40,6 +56,16 @@ struct DailyWordView: View {
     @State private var floatingXPOffset: CGFloat = 0
     @State private var showCompletion = false
     @State private var showHint = false
+
+    // Task Animation
+    @State private var taskAnimations: [Int: Bool] = [0: false, 1: false, 2: false]
+
+    // Paywall
+    @State private var showPaywall = false
+
+    // Mic pulse state
+    @State private var pulse = false
+    @State private var didHaptic = false
 
     private var prompt: String {
         switch vm.currentTask {
@@ -66,10 +92,7 @@ struct DailyWordView: View {
                 // Top bar - Next button
                 HStack {
                     Spacer()
-                    Button(action: {
-                        vm.nextWord()
-                        resetUI()
-                    }) {
+                    Button(action: handleNext) {
                         Text("Next")
                             .font(.headline.bold())
                             .foregroundColor(.blue)
@@ -94,7 +117,7 @@ struct DailyWordView: View {
                         .foregroundColor(.green)
                 }
                 
-                // Word of the day
+                // Word
                 Text(vm.currentWord.word)
                     .font(.system(size: 72, weight: .bold))
                     .minimumScaleFactor(0.5)
@@ -141,12 +164,20 @@ struct DailyWordView: View {
                 
                 // Task boxes
                 HStack(spacing: 12) {
-                    TaskBox(title: "Word", isCompleted: vm.currentTask >= 0)
-                    TaskBox(title: "Sentence", isCompleted: vm.currentTask >= 1)
-                    TaskBox(title: "Memory", isCompleted: vm.currentTask >= 2)
+                    ForEach(0..<3) { index in
+                        TaskBox(
+                            title: index == 0 ? "Word" : index == 1 ? "Sentence" : "Memory",
+                            isCompleted: progressVM.isTaskCompleted(
+                                wordID: vm.currentWord.id.uuidString,
+                                task: index
+                            )
+                        )
+                        .scaleEffect(taskAnimations[index] == true ? 1.2 : 1.0)
+                        .animation(.spring(response: 0.4, dampingFraction: 0.5), value: taskAnimations[index])
+                    }
                 }
                 
-                // Transcription or prompt
+                // Transcription / prompt
                 if speech.isRecording {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("You said:")
@@ -181,9 +212,7 @@ struct DailyWordView: View {
             }
             
             // Overlays
-            if showConfetti && vm.currentTask < 2 {
-                ConfettiView()
-            }
+            if showConfetti && vm.currentTask < 2 { ConfettiView() }
             
             if showToast, let toastText {
                 VStack {
@@ -206,15 +235,31 @@ struct DailyWordView: View {
                     vm.nextWord()
                     resetUI()
                     showHint = false
+                    taskAnimations = [0: false, 1: false, 2: false]
                 }
                 .environmentObject(progressVM)
             }
+        }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView(vm: OnboardingViewModel())
         }
         .onAppear {
             speech.requestPermission()
             animatedStreak = progressVM.currentStreak
             animatedXP = progressVM.xp
             vm.refreshWordsForCurrentDifficulty()
+            
+            // Start idle pulse
+            if !speech.isRecording {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    pulse = true
+                    if !didHaptic {
+                        let generator = UIImpactFeedbackGenerator(style: .medium)
+                        generator.impactOccurred()
+                        didHaptic = true
+                    }
+                }
+            }
         }
         .onChange(of: selectedDifficulty) { _ in
             vm.refreshWordsForCurrentDifficulty()
@@ -222,19 +267,46 @@ struct DailyWordView: View {
         }
     }
 
-    // MARK: - Views
+    // MARK: - Next button
+    private func handleNext() {
+        if !purchaseVM.hasPremiumAccess() &&
+            !ProgressTracker.shared.canPracticeWord(isPremium: false) {
+            showPaywall = true
+            return
+        }
+        
+        vm.nextWord()
+        resetUI()
+        taskAnimations = [0: false, 1: false, 2: false]
+    }
+
+    // MARK: - Mic Button
     private var micButton: some View {
         Group {
             if speech.micAvailable {
-                Circle()
-                    .fill(speech.isRecording ? .red : .blue)
-                    .frame(width: 150, height: 150)
-                    .overlay(
-                        Image(systemName: "mic.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(.white)
-                    )
-                    .onTapGesture { handleMicTap() }
+                ZStack {
+                    if speech.isRecording {
+                        WaveformView(level: min(max(speech.currentAmplitude * 5, 0), 1))
+                            .frame(width: 200, height: 200)
+                    }
+
+                    Circle()
+                        .fill(speech.isRecording ? .red : .blue)
+                        .frame(width: 150, height: 150)
+                        .scaleEffect(speech.isRecording ? 1 : (pulse ? 1.05 : 1.0))
+                        .overlay(
+                            Image(systemName: "mic.fill")
+                                .font(.system(size: 60))
+                                .foregroundColor(.white)
+                        )
+                        .onTapGesture { handleMicTap() }
+                        .animation(
+                            speech.isRecording
+                                ? .default
+                                : .easeInOut(duration: 0.75).repeatForever(autoreverses: true),
+                            value: pulse
+                        )
+                }
             } else {
                 VStack(spacing: 12) {
                     Image(systemName: "mic.slash.fill")
@@ -281,7 +353,7 @@ struct DailyWordView: View {
         }
     }
 
-    // MARK: - Logic
+    // MARK: - Mic / Speech Logic
     private func handleMicTap() {
         guard speech.micAvailable else { return }
 
@@ -305,39 +377,43 @@ struct DailyWordView: View {
     }
 
     private func celebrateTask() {
-        let xpAmounts = [10, 15, 25]
-        let xp = xpAmounts[vm.currentTask]
-        xpGained = xp
-        
-        let messages = ["Nice 👍", "Great job 😎", "Perfect 🎉"]
-        toastText = messages[vm.currentTask]
-        
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
-        
+        let taskXP = [10, 15, 25]
+        let completionXP = 100
         let wordID = vm.currentWord.id.uuidString
         let previousXP = progressVM.xp
         let previousStreak = progressVM.currentStreak
 
-        // Add XP for this task
-        progressVM.addXP(forWordID: wordID, amount: xp)
+        if vm.currentTask < 3 {
+            progressVM.addXP(forWordID: wordID, task: vm.currentTask, amount: taskXP[vm.currentTask])
+            xpGained = taskXP[vm.currentTask]
+            
+            taskAnimations[vm.currentTask] = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                taskAnimations[vm.currentTask] = false
+            }
+        }
 
-        // Animate partial task XP
+        let messages = ["Nice 👍", "Great job 😎", "Perfect 🎉"]
+        toastText = vm.currentTask < 3 ? messages[vm.currentTask] : "Completed 🎉"
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+
         animateValue(from: previousXP, to: progressVM.xp, duration: 0.8) { animatedXP = $0 }
         animateValue(from: previousStreak, to: progressVM.currentStreak, duration: 1.0) { animatedStreak = $0 }
-        
-        // Tracking
-        if vm.currentTask == 0 {
+
+        switch vm.currentTask {
+        case 0:
             ProgressTracker.shared.trackWordSpoken()
-        } else {
+            progressVM.incrementDailyWordCount()
+        case 1,2:
             ProgressTracker.shared.trackSentenceSpoken()
+        default: break
         }
         ProgressTracker.shared.trackPractice(seconds: 12)
-        
-        // Toast animation
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             withAnimation {
                 showToast = true
-                floatingXPText = "+\(xp) XP"
+                floatingXPText = "+\(xpGained) XP"
                 floatingXPOffset = 0
                 showFloatingXP = true
                 withAnimation(.easeOut(duration: 1.0)) {
@@ -345,9 +421,8 @@ struct DailyWordView: View {
                 }
             }
         }
-        
+
         if vm.currentTask < 2 {
-            // Not final task
             showConfetti = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
                 withAnimation {
@@ -360,17 +435,15 @@ struct DailyWordView: View {
                 vm.completeTask()
             }
         } else {
-            // FINAL TASK COMPLETED → Give big +100 XP reward ONCE here
-            let completionXP = 100
             let prevTotalXP = progressVM.xp
-            
-            progressVM.addXP(forWordID: wordID, amount: completionXP)
-            
-            // Animate the big final jump (will be picked up by CompletionView)
+            progressVM.addXP(forWordID: wordID, task: 3, amount: completionXP)
+            xpGained = completionXP
+
             animateValue(from: prevTotalXP, to: progressVM.xp, duration: 1.4) { animatedXP = $0 }
-            
-            ProgressTracker.shared.trackPractice(seconds: 30) // Bonus for full completion
-            
+
+            ProgressTracker.shared.trackPractice(seconds: 30)
+            progressVM.incrementDailyWordCount()
+
             showConfetti = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 withAnimation {
@@ -438,5 +511,7 @@ struct TaskBox: View {
             .padding(.horizontal, 12)
             .background(isCompleted ? Color.green : Color.gray.opacity(0.2))
             .cornerRadius(12)
+            .shadow(color: isCompleted ? Color.green.opacity(0.5) : .clear, radius: 6, x: 0, y: 0)
+            .animation(.spring(), value: isCompleted)
     }
 }

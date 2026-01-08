@@ -8,7 +8,7 @@ struct QuestionNameView: View {
         VStack(spacing: 30) {
             Spacer().frame(height: 40)
             
-            Text("What's your name?")
+            Text("What should we call you?")
                 .font(.system(size: 36, weight: .regular, design: .serif))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)

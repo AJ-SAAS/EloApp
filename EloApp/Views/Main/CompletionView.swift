@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 
 struct CompletionView: View {
     let wordID: String
@@ -6,14 +7,21 @@ struct CompletionView: View {
     let xpGained: Int = 100  // Final completion bonus
 
     @EnvironmentObject var vm: ProgressViewModel
+    @Environment(\.requestReview) private var requestReview  // <-- Add this
 
+    // Animated properties
     @State private var animatedXP: Int = 0
     @State private var animatedStreak: Int = 0
     @State private var showConfetti = false
     @State private var scaleUp = false
 
+    // Text messages
     @State private var motivationalText: String = ""
     @State private var tomorrowHookText: String = ""
+
+    // App review tracking
+    @AppStorage("completionCount") private var completionCount: Int = 0
+    @AppStorage("lastVersionPromptedForReview") private var lastVersionPromptedForReview: String = ""
 
     var body: some View {
         ZStack {
@@ -129,11 +137,33 @@ struct CompletionView: View {
                     withAnimation { showConfetti = false }
                 }
             }
+
+            // --- APP REVIEW LOGIC ---
+            completionCount += 1
+            if shouldPromptForReview() {
+                presentReview()
+            }
         }
     }
 
     private func triggerSuccessHaptic() {
         let generator = UINotificationFeedbackGenerator()
         generator.notificationOccurred(.success)
+    }
+
+    // MARK: - App Review Logic
+
+    private func shouldPromptForReview() -> Bool {
+        // Only prompt if user has completed enough sessions AND hasn't been prompted for this app version
+        let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+        return completionCount >= 4 && lastVersionPromptedForReview != currentVersion
+    }
+
+    private func presentReview() {
+        Task {
+            try? await Task.sleep(nanoseconds: 2 * 1_000_000_000) // 2-second delay
+            await requestReview()
+            lastVersionPromptedForReview = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+        }
     }
 }

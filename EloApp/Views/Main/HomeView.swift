@@ -1,8 +1,13 @@
 import SwiftUI
 
 struct HomeView: View {
+    @EnvironmentObject var authVM: AuthViewModel
+    @EnvironmentObject var purchaseVM: PurchaseViewModel
+
     var body: some View {
-        DailyWordView() // This is now your entire home screen
+        DailyWordView()
+            .environmentObject(authVM)       // pass AuthViewModel
+            .environmentObject(purchaseVM)   // pass PurchaseViewModel
             .navigationBarHidden(true)
     }
 }

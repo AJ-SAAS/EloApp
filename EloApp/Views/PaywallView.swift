@@ -14,6 +14,7 @@ struct PaywallView: View {
     @State private var purchaseError: String?
 
     let navyBlue = Color(red: 0.0, green: 0.3, blue: 0.5)
+    let accentBlue = Color(red: 0.1, green: 0.45, blue: 0.95)
 
     var body: some View {
         ScrollView {
@@ -59,13 +60,16 @@ struct PaywallView: View {
     }
 
     private var titleSection: some View {
-        VStack(spacing: 8) {
-            Text("New Year\nNew Language!")
+        VStack(spacing: 10) {
+            Text("Elo Premium")
+                .font(.title3.bold())
+                .foregroundColor(accentBlue)
+
+            Text("Get Unlimited Access")
                 .font(.system(.largeTitle, design: .serif).weight(.bold))
-                .foregroundColor(.black)
+                .foregroundColor(navyBlue)
                 .multilineTextAlignment(.center)
                 .lineSpacing(6)
-                .padding(.top, 6)
 
             Text("In 28 days, your English will help you respond to any unexpected situation on a trip.")
                 .font(.subheadline)
@@ -73,10 +77,12 @@ struct PaywallView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
         }
+        .padding(.top, 6)
     }
 
+    // MARK: - Centered Features (text now larger)
     private var featuresSection: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 20) {
             FeatureBulletCentered(text: "Unlimited interactive practice", navyBlue: navyBlue)
             FeatureBulletCentered(text: "Personalized study plan", navyBlue: navyBlue)
             FeatureBulletCentered(text: "Real-time AI feedback", navyBlue: navyBlue)
@@ -97,7 +103,8 @@ struct PaywallView: View {
                         offerType: type,
                         isSelected: selectedOffer == type,
                         onTap: { withAnimation { selectedOffer = type } },
-                        navyBlue: navyBlue
+                        accentColor: accentBlue,
+                        textColor: navyBlue
                     )
                 }
             } else {
@@ -107,18 +114,20 @@ struct PaywallView: View {
                     offerType: .lifetime,
                     isSelected: selectedOffer == .lifetime,
                     onTap: { withAnimation { selectedOffer = .lifetime } },
-                    navyBlue: navyBlue
+                    accentColor: accentBlue,
+                    textColor: navyBlue
                 )
                 OfferCard(
                     title: "Weekly Access",
-                    price: "$6.49 / week",
+                    price: "$4.99 / week",
                     offerType: .weekly,
                     isSelected: selectedOffer == .weekly,
                     onTap: { withAnimation { selectedOffer = .weekly } },
-                    navyBlue: navyBlue
+                    accentColor: accentBlue,
+                    textColor: navyBlue
                 )
             }
-            FreeTrialCard(isEnabled: $isFreeTrialEnabled, navyBlue: navyBlue)
+            FreeTrialCard(isEnabled: $isFreeTrialEnabled, textColor: navyBlue, toggleTint: accentBlue)
         }
     }
 
@@ -136,14 +145,8 @@ struct PaywallView: View {
                 .foregroundColor(.white)
                 .padding()
                 .frame(maxWidth: .infinity)
-                .background(
-                    LinearGradient(
-                        colors: [Color.blue, Color.purple],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .cornerRadius(30)
+                .background(accentBlue)
+                .cornerRadius(16)
                 .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 3)
                 .scaleEffect(isProcessingPurchase ? 0.95 : 1.0)
         }
@@ -172,7 +175,7 @@ struct PaywallView: View {
         HStack {
             Button("Terms of Use") {}
                 .font(.subheadline)
-                .foregroundColor(.blue)
+                .foregroundColor(accentBlue)
 
             Spacer()
 
@@ -180,7 +183,7 @@ struct PaywallView: View {
                 Task { await restorePurchases() }
             }
             .font(.subheadline)
-            .foregroundColor(.blue)
+            .foregroundColor(accentBlue)
         }
         .padding(.bottom)
     }
@@ -202,8 +205,10 @@ struct PaywallView: View {
 
         if let package {
             let success = await purchaseVM.purchase(package: package)
-            if success { vm.skipPaywall() }
-            else { purchaseError = "Purchase failed. Try again." }
+            if success {
+                ProgressTracker.shared.hasPremiumAccess = true
+                vm.skipPaywall()
+            } else { purchaseError = "Purchase failed. Try again." }
         } else {
             purchaseError = "Selected package not found."
         }
@@ -214,8 +219,12 @@ struct PaywallView: View {
         defer { isProcessingPurchase = false }
         purchaseError = nil
         await purchaseVM.restorePurchases()
-        if purchaseVM.hasPremiumAccess() { vm.skipPaywall() }
-        else { purchaseError = "No active purchases found." }
+        if purchaseVM.hasPremiumAccess() {
+            ProgressTracker.shared.hasPremiumAccess = true
+            vm.skipPaywall()
+        } else {
+            purchaseError = "No active purchases found."
+        }
     }
 }
 
@@ -225,23 +234,24 @@ enum OfferType {
     case weekly
 }
 
-// MARK: - Feature Bullet (Aligned)
+// MARK: - Centered Feature Bullet (text now larger: .headline)
 struct FeatureBulletCentered: View {
     let text: String
     let navyBlue: Color
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(spacing: 16) {
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 20))
+                .font(.system(size: 24))
                 .foregroundColor(navyBlue)
-                .padding(.top, 2)
+
             Text(text)
-                .font(.subheadline.bold())
+                .font(.headline.bold())  // ← Increased size (was .subheadline.bold())
                 .foregroundColor(.primary)
-                .multilineTextAlignment(.leading)
+                .multilineTextAlignment(.center)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: 340, alignment: .center)
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -252,7 +262,8 @@ struct OfferCard: View {
     let offerType: OfferType
     let isSelected: Bool
     let onTap: () -> Void
-    let navyBlue: Color
+    let accentColor: Color
+    let textColor: Color
 
     var body: some View {
         Button(action: onTap) {
@@ -260,7 +271,7 @@ struct OfferCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.headline.bold())
-                        .foregroundColor(navyBlue)
+                        .foregroundColor(textColor)
                     Text(price)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
@@ -268,25 +279,25 @@ struct OfferCard: View {
                 Spacer()
                 ZStack {
                     Circle()
-                        .stroke(isSelected ? navyBlue : Color.gray.opacity(0.3), lineWidth: 2)
+                        .stroke(isSelected ? accentColor : Color.gray.opacity(0.3), lineWidth: 2)
                         .frame(width: 24, height: 24)
                     if isSelected {
                         Image(systemName: "checkmark")
                             .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(navyBlue)
+                            .foregroundColor(accentColor)
                     }
                 }
             }
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(isSelected ? navyBlue.opacity(0.08) : Color.gray.opacity(0.08))
+                    .fill(isSelected ? accentColor.opacity(0.08) : Color.gray.opacity(0.08))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 20)
-                    .stroke(isSelected ? navyBlue : Color.gray.opacity(0.3), lineWidth: 1.5)
+                    .stroke(isSelected ? accentColor : Color.gray.opacity(0.3), lineWidth: 1.5)
             )
-            .shadow(color: isSelected ? navyBlue.opacity(0.15) : Color.clear, radius: 4, x: 0, y: 2)
+            .shadow(color: isSelected ? accentColor.opacity(0.15) : Color.clear, radius: 4, x: 0, y: 2)
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -295,17 +306,18 @@ struct OfferCard: View {
 // MARK: - Free Trial Card
 struct FreeTrialCard: View {
     @Binding var isEnabled: Bool
-    let navyBlue: Color
+    let textColor: Color
+    let toggleTint: Color
 
     var body: some View {
         HStack {
             Text("Free Trial Enabled")
                 .font(.subheadline.bold())
-                .foregroundColor(navyBlue)
+                .foregroundColor(textColor)
             Spacer()
             Toggle("", isOn: $isEnabled)
                 .labelsHidden()
-                .tint(navyBlue)
+                .tint(toggleTint)
         }
         .padding(12)
         .background(Color.gray.opacity(0.12))
@@ -349,8 +361,8 @@ struct FreeTrialDueView: View {
                 }
 
                 HStack {
-                    Text("Due \(trialEndDateString())")
-                        .font(.subheadline.bold())
+                    Text(trialEndDateString())
+                        .font(.headline)
                         .foregroundColor(navyBlue)
                     Spacer()
                     HStack(spacing: 4) {
@@ -358,8 +370,8 @@ struct FreeTrialDueView: View {
                             .font(.subheadline.bold())
                             .strikethrough()
                             .foregroundColor(.red)
-                        Text("$6.49")
-                            .font(.subheadline.bold())
+                        Text("$4.99")
+                            .font(.headline)
                             .foregroundColor(navyBlue)
                     }
                 }
@@ -370,10 +382,11 @@ struct FreeTrialDueView: View {
     func trialEndDateString() -> String {
         let calendar = Calendar.current
         let today = Date()
-        guard let trialEndDate = calendar.date(byAdding: .day, value: 6, to: today) else { return "" }
+        guard let trialEndDate = calendar.date(byAdding: .day, value: 6, to: today) else { return "Due in 7 days" }
         let formatter = DateFormatter()
         formatter.locale = Locale.current
         formatter.dateFormat = "MMMM d, yyyy"
-        return formatter.string(from: trialEndDate)
+        let dateStr = formatter.string(from: trialEndDate)
+        return "Due \(dateStr)"
     }
 }

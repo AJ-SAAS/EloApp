@@ -39,7 +39,7 @@ struct OnboardingContainerView: View {
                     )
                     .tag(OnboardingViewModel.OnboardingPage.featureProgress)
 
-                    // Free trial / paywalls / questions
+                    // Free trial / paywalls
                     FreeTrialToggleView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.freeTrialToggle1)
 
@@ -49,26 +49,45 @@ struct OnboardingContainerView: View {
                     PaywallView(vm: vm, showAuthInline: false)
                         .tag(OnboardingViewModel.OnboardingPage.paywall1)
 
+                    // Questions
                     QuestionNameView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionName)
+                    
+                    QuestionShortTermGoalsView(vm: vm)
+                        .tag(OnboardingViewModel.OnboardingPage.questionShortTermGoals)
+                    
+                    QuestionLongTermGoalsView(vm: vm)
+                        .tag(OnboardingViewModel.OnboardingPage.questionLongTermGoals)
+
+                    GoalsConfirmationView(vm: vm)  // ADD THIS
+                        .tag(OnboardingViewModel.OnboardingPage.goalsConfirmation)
+
                     QuestionNativeLanguageView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionNativeLang)
+                    
                     QuestionEnglishLevelView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionLevel)
+                    
                     QuestionInterestsView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionInterests)
+                    
                     QuestionImprovementAreasView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionAreas)
+                    
                     QuestionDailyGoalView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionGoal)
+                    
                     QuestionReminderTimeView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionReminder)
+                    
                     QuestionNotificationsView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionNotifications)
 
+                    // Preparing Plan
                     PreparingPlanView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.preparingPlan)
 
+                    // Second free trial / paywall
                     FreeTrialToggleView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.freeTrialToggle2)
 
@@ -81,7 +100,6 @@ struct OnboardingContainerView: View {
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                 .animation(.easeInOut, value: vm.currentPage)
-                // ✅ No swipe gestures, only button-driven navigation
 
                 // Bottom buttons
                 VStack {
@@ -126,6 +144,10 @@ struct OnboardingContainerView: View {
         switch vm.currentPage {
         case .questionName:
             return !vm.userName.trimmingCharacters(in: .whitespaces).isEmpty
+        case .questionShortTermGoals:
+            return !vm.shortTermGoals.isEmpty
+        case .questionLongTermGoals:
+            return !vm.longTermGoal.isEmpty
         case .questionNativeLang:
             return !vm.nativeLanguage.isEmpty
         case .questionLevel:

@@ -43,7 +43,7 @@ final class AuthViewModel: ObservableObject {
         Auth.auth().currentUser?.uid
     }
 
-    // MARK: - Email Auth (USED BY AuthView)
+    // MARK: - Email Auth
     func register(email: String, password: String) async -> Bool {
         isLoading = true
         errorMessage = nil
@@ -88,7 +88,7 @@ final class AuthViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Delete Account (Apple-compliant re-auth)
+    // MARK: - Delete Account
     func deleteAccount(
         password: String? = nil,
         onReAuthRequired: (() -> Void)? = nil
@@ -101,7 +101,6 @@ final class AuthViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            // Re-auth if password provided
             if let password,
                let email = user.email {
                 let credential = EmailAuthProvider.credential(
@@ -111,15 +110,12 @@ final class AuthViewModel: ObservableObject {
                 try await user.reauthenticate(with: credential)
             }
 
-            // Delete Firestore user document
             try await Firestore.firestore()
                 .collection("users")
                 .document(user.uid)
                 .delete()
 
-            // Delete Auth user
             try await user.delete()
-
             print("🔥 Account permanently deleted")
 
         } catch let error as NSError {
@@ -128,6 +124,25 @@ final class AuthViewModel: ObservableObject {
             } else {
                 errorMessage = error.localizedDescription
             }
+        }
+    }
+
+    // MARK: - Reset Password
+    func sendPasswordResetEmail() async -> Bool {
+        guard let email = Auth.auth().currentUser?.email else { return false }
+
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+
+        do {
+            try await Auth.auth().sendPasswordReset(withEmail: email)
+            print("📧 Password reset email sent to \(email)")
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            print("❌ Failed to send password reset email:", error.localizedDescription)
+            return false
         }
     }
 
