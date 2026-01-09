@@ -234,11 +234,11 @@ struct SettingsView: View {
                         }
 
                         SettingsRow(title: "Contact Us") {
-                            openLink("mailto:tryeloenglishsupport@gmail.com")
+                            openLink("mailto:tryeloenglish@gmail.com")
                         }
 
                         SettingsRow(title: "Share Feedback") {
-                            openLink("mailto:tryeloenglishsupport@gmail.com?subject=Feedback%20on%20Elo%20App")
+                            openLink("mailto:tryeloenglish@gmail.com?subject=Feedback%20on%20Elo%20App")
                         }
                     }
                     .padding(.horizontal)
