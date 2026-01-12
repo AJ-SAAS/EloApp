@@ -18,7 +18,7 @@ struct PaywallView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 30) {
+            VStack(spacing: 24) {
                 closeButton
                 titleSection
                 featuresSection
@@ -36,13 +36,18 @@ struct PaywallView: View {
         .onChange(of: selectedOffer) { newValue in
             isFreeTrialEnabled = (newValue == .weekly)
         }
+        .onChange(of: isFreeTrialEnabled) { newValue in
+            if selectedOffer == .weekly {
+                // Toggle only affects behavior when weekly is selected
+                // No need to change selectedOffer here
+            }
+        }
     }
 
     // MARK: - Components
 
     private var closeButton: some View {
         HStack {
-            Spacer()
             Button {
                 if showAuthInline {
                     ProgressTracker.shared.markOnboardingCompleted()
@@ -56,7 +61,16 @@ struct PaywallView: View {
                     .padding(10)
                     .background(Circle().fill(Color.gray.opacity(0.2)))
             }
+            
+            Spacer()
+            
+            Button("Restore") {
+                Task { await restorePurchases() }
+            }
+            .font(.subheadline)
+            .foregroundColor(accentBlue)
         }
+        .padding(.top, 8)
     }
 
     private var titleSection: some View {
@@ -77,23 +91,22 @@ struct PaywallView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
         }
-        .padding(.top, 6)
     }
 
     // MARK: - Centered Features (text now larger)
     private var featuresSection: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 8) {
             FeatureBulletCentered(text: "Unlimited interactive practice", navyBlue: navyBlue)
             FeatureBulletCentered(text: "Personalized study plan", navyBlue: navyBlue)
             FeatureBulletCentered(text: "Real-time AI feedback", navyBlue: navyBlue)
             FeatureBulletCentered(text: "Control & track your progress", navyBlue: navyBlue)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
+        .padding(.vertical, 4)
     }
 
     private var offersSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 10) {
             if let packages = purchaseVM.offerings?.current?.availablePackages {
                 ForEach(packages, id: \.identifier) { package in
                     let type: OfferType = package.identifier.contains("lifetime") ? .lifetime : .weekly
@@ -127,20 +140,25 @@ struct PaywallView: View {
                     textColor: navyBlue
                 )
             }
+            
             FreeTrialCard(isEnabled: $isFreeTrialEnabled, textColor: navyBlue, toggleTint: accentBlue)
         }
     }
 
     private var dueSection: some View {
-        FreeTrialDueView(navyBlue: navyBlue)
-            .padding(.top, -10)
+        FreeTrialDueView(
+            navyBlue: navyBlue,
+            selectedOffer: selectedOffer,
+            isFreeTrialEnabled: isFreeTrialEnabled
+        )
+        .padding(.top, -10)
     }
 
     private var ctaButton: some View {
         Button(action: {
             Task { await purchaseSelectedOffer() }
         }) {
-            Text(selectedOffer == .weekly && isFreeTrialEnabled ? "Try Free Today →" : "Unlock Full Access")
+            Text(buttonText)
                 .font(.headline.bold())
                 .foregroundColor(.white)
                 .padding()
@@ -151,6 +169,16 @@ struct PaywallView: View {
                 .scaleEffect(isProcessingPurchase ? 0.95 : 1.0)
         }
         .disabled(isProcessingPurchase)
+    }
+    
+    private var buttonText: String {
+        if selectedOffer == .lifetime {
+            return "Start Now"
+        } else if isFreeTrialEnabled {
+            return "Try Free Today →"
+        } else {
+            return "Unlock Full Access"
+        }
     }
 
     @ViewBuilder
@@ -174,19 +202,13 @@ struct PaywallView: View {
     private var bottomButtons: some View {
         VStack(spacing: 12) {
             HStack(spacing: 20) {
-                Link("Terms of Use", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
+                Link("Terms of Use", destination: URL(string: "https://yourwebsite.com/terms")!)
                     .font(.subheadline)
                     .foregroundColor(accentBlue)
                 
-                Link("Privacy Policy", destination: URL(string: "https://www.tryeloenglish.xyz/privacy")!)
+                Link("Privacy Policy", destination: URL(string: "https://yourwebsite.com/privacy")!)
                     .font(.subheadline)
                     .foregroundColor(accentBlue)
-                
-                Button("Restore") {
-                    Task { await restorePurchases() }
-                }
-                .font(.subheadline)
-                .foregroundColor(accentBlue)
             }
         }
         .padding(.bottom)
@@ -246,7 +268,7 @@ struct FeatureBulletCentered: View {
     var body: some View {
         HStack(spacing: 16) {
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 24))
+                .font(.system(size: 20))
                 .foregroundColor(navyBlue)
 
             Text(text)
@@ -332,6 +354,8 @@ struct FreeTrialCard: View {
 // MARK: - Free Trial Due View
 struct FreeTrialDueView: View {
     let navyBlue: Color
+    let selectedOffer: OfferType
+    let isFreeTrialEnabled: Bool
 
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
@@ -349,48 +373,68 @@ struct FreeTrialDueView: View {
             .padding(.top, 4)
 
             VStack(spacing: 8) {
+                // First Row
                 HStack {
                     Text("Due today")
                         .font(.subheadline.bold())
                         .foregroundColor(navyBlue)
                     Spacer()
                     HStack(spacing: 4) {
-                        Text("7 days free")
-                            .font(.subheadline.bold())
-                            .foregroundColor(.green)
-                        Text("$0.00")
-                            .font(.subheadline)
-                            .foregroundColor(navyBlue)
+                        if selectedOffer == .lifetime {
+                            Text("$17.99")
+                                .font(.headline)
+                                .foregroundColor(navyBlue)
+                        } else {
+                            Text("7 days free")
+                                .font(.subheadline.bold())
+                                .foregroundColor(.green)
+                            Text("$0.00")
+                                .font(.subheadline)
+                                .foregroundColor(navyBlue)
+                        }
                     }
                 }
 
+                // Second Row
                 HStack {
-                    Text(trialEndDateString())
+                    Text(secondRowLeftText())
                         .font(.headline)
-                        .foregroundColor(navyBlue)
+                        .foregroundColor(selectedOffer == .lifetime ? navyBlue : navyBlue)
                     Spacer()
                     HStack(spacing: 4) {
-                        Text("$12.95")
-                            .font(.subheadline.bold())
-                            .strikethrough()
-                            .foregroundColor(.red)
-                        Text("$4.99")
-                            .font(.headline)
-                            .foregroundColor(navyBlue)
+                        if selectedOffer == .lifetime {
+                            Text("Save 70%")
+                                .font(.headline)
+                                .foregroundColor(.green)
+                        } else {
+                            Text("$12.95")
+                                .font(.subheadline.bold())
+                                .strikethrough()
+                                .foregroundColor(.red)
+                            Text("$4.99")
+                                .font(.headline)
+                                .foregroundColor(navyBlue)
+                        }
                     }
                 }
             }
         }
     }
 
-    func trialEndDateString() -> String {
-        let calendar = Calendar.current
-        let today = Date()
-        guard let trialEndDate = calendar.date(byAdding: .day, value: 6, to: today) else { return "Due in 7 days" }
-        let formatter = DateFormatter()
-        formatter.locale = Locale.current
-        formatter.dateFormat = "MMMM d, yyyy"
-        let dateStr = formatter.string(from: trialEndDate)
-        return "Due \(dateStr)"
+    func secondRowLeftText() -> String {
+        if selectedOffer == .lifetime {
+            return "No payment for weeks"
+        } else {
+            let calendar = Calendar.current
+            let today = Date()
+            guard let trialEndDate = calendar.date(byAdding: .day, value: 6, to: today) else {
+                return "Due in 7 days"
+            }
+            let formatter = DateFormatter()
+            formatter.locale = Locale.current
+            formatter.dateFormat = "MMMM d, yyyy"
+            let dateStr = formatter.string(from: trialEndDate)
+            return "Due \(dateStr)"
+        }
     }
 }
