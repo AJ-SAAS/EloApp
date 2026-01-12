@@ -13,9 +13,6 @@ struct PaywallView: View {
     @State private var isProcessingPurchase = false
     @State private var purchaseError: String?
 
-    let navyBlue = Color(red: 0.0, green: 0.3, blue: 0.5)
-    let accentBlue = Color(red: 0.1, green: 0.45, blue: 0.95)
-
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
@@ -68,7 +65,7 @@ struct PaywallView: View {
                 Task { await restorePurchases() }
             }
             .font(.subheadline)
-            .foregroundColor(accentBlue)
+            .foregroundColor(Color(red: 0.078, green: 0.722, blue: 0.651)) // #14B8A6 Teal
         }
         .padding(.top, 8)
     }
@@ -77,17 +74,17 @@ struct PaywallView: View {
         VStack(spacing: 10) {
             Text("Elo Premium")
                 .font(.title3.bold())
-                .foregroundColor(accentBlue)
+                .foregroundColor(Color(red: 0.976, green: 0.451, blue: 0.086)) // #F97316 Coral
 
             Text("Get Unlimited Access")
-                .font(.system(.largeTitle, design: .serif).weight(.bold))
-                .foregroundColor(navyBlue)
+                .font(.system(.largeTitle, design: .default).weight(.bold))
+                .foregroundColor(Color(red: 0.192, green: 0.18, blue: 0.506)) // #312E81 Deep Indigo
                 .multilineTextAlignment(.center)
                 .lineSpacing(6)
 
             Text("In 28 days, your English will help you respond to any unexpected situation on a trip.")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(Color(red: 0.471, green: 0.443, blue: 0.424)) // #78716C Warm Gray
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
         }
@@ -96,10 +93,10 @@ struct PaywallView: View {
     // MARK: - Centered Features (text now larger)
     private var featuresSection: some View {
         VStack(spacing: 8) {
-            FeatureBulletCentered(text: "Unlimited interactive practice", navyBlue: navyBlue)
-            FeatureBulletCentered(text: "Personalized study plan", navyBlue: navyBlue)
-            FeatureBulletCentered(text: "Real-time AI feedback", navyBlue: navyBlue)
-            FeatureBulletCentered(text: "Control & track your progress", navyBlue: navyBlue)
+            FeatureBulletCentered(text: "Unlimited interactive practice", iconColor: Color(red: 0.078, green: 0.722, blue: 0.651)) // #14B8A6 Teal
+            FeatureBulletCentered(text: "Personalized study plan", iconColor: Color(red: 0.078, green: 0.722, blue: 0.651))
+            FeatureBulletCentered(text: "Real-time AI feedback", iconColor: Color(red: 0.078, green: 0.722, blue: 0.651))
+            FeatureBulletCentered(text: "Control & track your progress", iconColor: Color(red: 0.078, green: 0.722, blue: 0.651))
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 4)
@@ -109,45 +106,54 @@ struct PaywallView: View {
         VStack(spacing: 10) {
             if let packages = purchaseVM.offerings?.current?.availablePackages {
                 ForEach(packages, id: \.identifier) { package in
-                    let type: OfferType = package.identifier.contains("lifetime") ? .lifetime : .weekly
+                    let type: OfferType = package.storeProduct.productIdentifier.contains("lifetime") ? .lifetime : .weekly
+                    let subtitle = type == .lifetime ? "one-time payment" : "per week"
                     OfferCard(
                         title: package.storeProduct.localizedTitle,
                         price: package.storeProduct.localizedPriceString,
+                        subtitle: subtitle,
                         offerType: type,
                         isSelected: selectedOffer == type,
                         onTap: { withAnimation { selectedOffer = type } },
-                        accentColor: accentBlue,
-                        textColor: navyBlue
+                        accentColor: Color(red: 0.078, green: 0.722, blue: 0.651), // #14B8A6 Teal
+                        textColor: Color(red: 0.161, green: 0.145, blue: 0.141) // #292524 Charcoal
                     )
                 }
             } else {
                 OfferCard(
                     title: "Lifetime Access",
-                    price: "$17.99 one-time payment",
+                    price: "$17.99",
+                    subtitle: "one-time payment",
                     offerType: .lifetime,
                     isSelected: selectedOffer == .lifetime,
                     onTap: { withAnimation { selectedOffer = .lifetime } },
-                    accentColor: accentBlue,
-                    textColor: navyBlue
+                    accentColor: Color(red: 0.078, green: 0.722, blue: 0.651), // #14B8A6 Teal
+                    textColor: Color(red: 0.161, green: 0.145, blue: 0.141) // #292524 Charcoal
                 )
                 OfferCard(
                     title: "Weekly Access",
-                    price: "$4.99 / week",
+                    price: "$4.99",
+                    subtitle: "per week",
                     offerType: .weekly,
                     isSelected: selectedOffer == .weekly,
                     onTap: { withAnimation { selectedOffer = .weekly } },
-                    accentColor: accentBlue,
-                    textColor: navyBlue
+                    accentColor: Color(red: 0.078, green: 0.722, blue: 0.651), // #14B8A6 Teal
+                    textColor: Color(red: 0.161, green: 0.145, blue: 0.141) // #292524 Charcoal
                 )
             }
             
-            FreeTrialCard(isEnabled: $isFreeTrialEnabled, textColor: navyBlue, toggleTint: accentBlue)
+            FreeTrialCard(
+                isEnabled: $isFreeTrialEnabled,
+                textColor: Color(red: 0.161, green: 0.145, blue: 0.141), // #292524 Charcoal
+                toggleTint: Color(red: 0.078, green: 0.722, blue: 0.651) // #14B8A6 Teal
+            )
         }
     }
 
     private var dueSection: some View {
         FreeTrialDueView(
-            navyBlue: navyBlue,
+            primaryColor: Color(red: 0.192, green: 0.18, blue: 0.506), // #312E81 Deep Indigo
+            accentColor: Color(red: 0.976, green: 0.451, blue: 0.086), // #F97316 Coral
             selectedOffer: selectedOffer,
             isFreeTrialEnabled: isFreeTrialEnabled
         )
@@ -163,7 +169,7 @@ struct PaywallView: View {
                 .foregroundColor(.white)
                 .padding()
                 .frame(maxWidth: .infinity)
-                .background(accentBlue)
+                .background(Color(red: 0.078, green: 0.722, blue: 0.651)) // #14B8A6 Teal
                 .cornerRadius(16)
                 .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 3)
                 .scaleEffect(isProcessingPurchase ? 0.95 : 1.0)
@@ -202,13 +208,13 @@ struct PaywallView: View {
     private var bottomButtons: some View {
         VStack(spacing: 12) {
             HStack(spacing: 20) {
-                Link("Terms of Use", destination: URL(string: "https://yourwebsite.com/terms")!)
+                Link("Terms of Use", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
                     .font(.subheadline)
-                    .foregroundColor(accentBlue)
+                    .foregroundColor(Color(red: 0.078, green: 0.722, blue: 0.651)) // #14B8A6 Teal
                 
-                Link("Privacy Policy", destination: URL(string: "https://yourwebsite.com/privacy")!)
+                Link("Privacy Policy", destination: URL(string: "https://www.tryeloenglish.xyz/privacy")!)
                     .font(.subheadline)
-                    .foregroundColor(accentBlue)
+                    .foregroundColor(Color(red: 0.078, green: 0.722, blue: 0.651)) // #14B8A6 Teal
             }
         }
         .padding(.bottom)
@@ -226,8 +232,8 @@ struct PaywallView: View {
         purchaseError = nil
 
         let package = selectedOffer == .lifetime
-            ? packages.first { $0.identifier.contains("lifetime") }
-            : packages.first { $0.identifier.contains("weekly") }
+            ? packages.first { $0.storeProduct.productIdentifier.contains("lifetime") }
+            : packages.first { $0.storeProduct.productIdentifier.contains("weekly") }
 
         if let package {
             let success = await purchaseVM.purchase(package: package)
@@ -263,17 +269,17 @@ enum OfferType {
 // MARK: - Centered Feature Bullet (text now larger: .headline)
 struct FeatureBulletCentered: View {
     let text: String
-    let navyBlue: Color
+    let iconColor: Color
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 12) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 20))
-                .foregroundColor(navyBlue)
+                .foregroundColor(iconColor)
 
             Text(text)
                 .font(.headline.bold())
-                .foregroundColor(.primary)
+                .foregroundColor(Color(red: 0.161, green: 0.145, blue: 0.141))
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: 340, alignment: .center)
@@ -285,6 +291,7 @@ struct FeatureBulletCentered: View {
 struct OfferCard: View {
     let title: String
     let price: String
+    let subtitle: String
     let offerType: OfferType
     let isSelected: Bool
     let onTap: () -> Void
@@ -298,9 +305,14 @@ struct OfferCard: View {
                     Text(title)
                         .font(.headline.bold())
                         .foregroundColor(textColor)
-                    Text(price)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                    HStack(spacing: 4) {
+                        Text(price)
+                            .font(.subheadline.bold())
+                            .foregroundColor(textColor)
+                        Text(subtitle)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 Spacer()
                 ZStack {
@@ -353,7 +365,8 @@ struct FreeTrialCard: View {
 
 // MARK: - Free Trial Due View
 struct FreeTrialDueView: View {
-    let navyBlue: Color
+    let primaryColor: Color
+    let accentColor: Color
     let selectedOffer: OfferType
     let isFreeTrialEnabled: Bool
 
@@ -377,20 +390,20 @@ struct FreeTrialDueView: View {
                 HStack {
                     Text("Due today")
                         .font(.subheadline.bold())
-                        .foregroundColor(navyBlue)
+                        .foregroundColor(primaryColor)
                     Spacer()
                     HStack(spacing: 4) {
                         if selectedOffer == .lifetime {
                             Text("$17.99")
                                 .font(.headline)
-                                .foregroundColor(navyBlue)
+                                .foregroundColor(primaryColor)
                         } else {
                             Text("7 days free")
                                 .font(.subheadline.bold())
                                 .foregroundColor(.green)
                             Text("$0.00")
                                 .font(.subheadline)
-                                .foregroundColor(navyBlue)
+                                .foregroundColor(primaryColor)
                         }
                     }
                 }
@@ -399,7 +412,7 @@ struct FreeTrialDueView: View {
                 HStack {
                     Text(secondRowLeftText())
                         .font(.headline)
-                        .foregroundColor(selectedOffer == .lifetime ? navyBlue : navyBlue)
+                        .foregroundColor(primaryColor)
                     Spacer()
                     HStack(spacing: 4) {
                         if selectedOffer == .lifetime {
@@ -410,10 +423,10 @@ struct FreeTrialDueView: View {
                             Text("$12.95")
                                 .font(.subheadline.bold())
                                 .strikethrough()
-                                .foregroundColor(.red)
+                                .foregroundColor(accentColor)
                             Text("$4.99")
                                 .font(.headline)
-                                .foregroundColor(navyBlue)
+                                .foregroundColor(primaryColor)
                         }
                     }
                 }
