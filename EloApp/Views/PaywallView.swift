@@ -34,9 +34,9 @@ struct PaywallView: View {
             isFreeTrialEnabled = (newValue == .weekly)
         }
         .onChange(of: isFreeTrialEnabled) { newValue in
-            if selectedOffer == .weekly {
-                // Toggle only affects behavior when weekly is selected
-                // No need to change selectedOffer here
+            // When toggle changes, update the selected offer
+            withAnimation {
+                selectedOffer = newValue ? .weekly : .lifetime
             }
         }
     }
