@@ -172,18 +172,22 @@ struct PaywallView: View {
     }
 
     private var bottomButtons: some View {
-        HStack {
-            Button("Terms of Use") {}
+        VStack(spacing: 12) {
+            HStack(spacing: 20) {
+                Link("Terms of Use", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
+                    .font(.subheadline)
+                    .foregroundColor(accentBlue)
+                
+                Link("Privacy Policy", destination: URL(string: "https://www.tryeloenglish.xyz/privacy")!)
+                    .font(.subheadline)
+                    .foregroundColor(accentBlue)
+                
+                Button("Restore") {
+                    Task { await restorePurchases() }
+                }
                 .font(.subheadline)
                 .foregroundColor(accentBlue)
-
-            Spacer()
-
-            Button("Restore Subscriptions") {
-                Task { await restorePurchases() }
             }
-            .font(.subheadline)
-            .foregroundColor(accentBlue)
         }
         .padding(.bottom)
     }
@@ -246,7 +250,7 @@ struct FeatureBulletCentered: View {
                 .foregroundColor(navyBlue)
 
             Text(text)
-                .font(.headline.bold())  // ← Increased size (was .subheadline.bold())
+                .font(.headline.bold())
                 .foregroundColor(.primary)
                 .multilineTextAlignment(.center)
         }
