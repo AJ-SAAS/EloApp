@@ -244,19 +244,27 @@ struct DailyWordView: View {
             PaywallView(vm: OnboardingViewModel())
         }
         .onAppear {
+            // Keep permission request immediate (important UX)
             speech.requestPermission()
-            animatedStreak = progressVM.currentStreak
-            animatedXP = progressVM.xp
-            vm.refreshWordsForCurrentDifficulty()
             
-            // Start idle pulse
-            if !speech.isRecording {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    pulse = true
-                    if !didHaptic {
-                        let generator = UIImpactFeedbackGenerator(style: .medium)
-                        generator.impactOccurred()
-                        didHaptic = true
+            // Defer potentially heavy operations
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { @MainActor in
+                self.vm.refreshWordsForCurrentDifficulty()
+                
+                withAnimation {
+                    self.animatedStreak = self.progressVM.currentStreak
+                    self.animatedXP = self.progressVM.xp
+                }
+                
+                // Start pulse & haptic a bit later
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                    if !self.speech.isRecording {
+                        self.pulse = true
+                        if !self.didHaptic {
+                            let generator = UIImpactFeedbackGenerator(style: .medium)
+                            generator.impactOccurred()
+                            self.didHaptic = true
+                        }
                     }
                 }
             }

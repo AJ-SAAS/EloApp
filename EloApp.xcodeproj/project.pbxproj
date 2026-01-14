@@ -430,6 +430,7 @@
 				DEVELOPMENT_TEAM = 7ZX376GC28;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Elo;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We use the microphone so you can practice pronouncing words and sentences aloud. Audio is not stored.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "This app uses on-device speech recognition to check your pronunciation.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -442,7 +443,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = xyz.eloapp.EloApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -469,6 +470,7 @@
 				DEVELOPMENT_TEAM = 7ZX376GC28;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Elo;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We use the microphone so you can practice pronouncing words and sentences aloud. Audio is not stored.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "This app uses on-device speech recognition to check your pronunciation.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -481,7 +483,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = xyz.eloapp.EloApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
