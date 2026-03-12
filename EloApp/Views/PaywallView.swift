@@ -9,7 +9,6 @@ struct PaywallView: View {
 
     @StateObject private var purchaseVM = PurchaseViewModel()
     @State private var selectedOffer: OfferType = .weekly
-    @State private var isFreeTrialEnabled = true
     @State private var isProcessingPurchase = false
     @State private var purchaseError: String?
 
@@ -30,15 +29,6 @@ struct PaywallView: View {
         }
         .background(Color.white.ignoresSafeArea())
         .onAppear { purchaseVM.fetchOfferings() }
-        .onChange(of: selectedOffer) { newValue in
-            isFreeTrialEnabled = (newValue == .weekly)
-        }
-        .onChange(of: isFreeTrialEnabled) { newValue in
-            // When toggle changes, update the selected offer
-            withAnimation {
-                selectedOffer = newValue ? .weekly : .lifetime
-            }
-        }
     }
 
     // MARK: - Components
@@ -65,7 +55,7 @@ struct PaywallView: View {
                 Task { await restorePurchases() }
             }
             .font(.subheadline)
-            .foregroundColor(Color(red: 0.078, green: 0.722, blue: 0.651)) // #14B8A6 Teal
+            .foregroundColor(Color(red: 0.078, green: 0.722, blue: 0.651))
         }
         .padding(.top, 8)
     }
@@ -74,29 +64,27 @@ struct PaywallView: View {
         VStack(spacing: 10) {
             Text("Elo Premium")
                 .font(.title3.bold())
-                .foregroundColor(Color(red: 0.976, green: 0.451, blue: 0.086)) // #F97316 Coral
+                .foregroundColor(Color(red: 0.976, green: 0.451, blue: 0.086))
 
-            Text("Get Unlimited Access")
+            Text("Master English Word by Word")
                 .font(.system(.largeTitle, design: .default).weight(.bold))
-                .foregroundColor(Color(red: 0.192, green: 0.18, blue: 0.506)) // #312E81 Deep Indigo
+                .foregroundColor(Color(red: 0.192, green: 0.18, blue: 0.506))
                 .multilineTextAlignment(.center)
                 .lineSpacing(6)
 
-            Text("In 28 days, your English will help you respond to any unexpected situation on a trip.")
+            Text("Learn, speak, and remember every word using our science-backed method. Hold your first English sentence confidently in just 7 days.")
                 .font(.subheadline)
-                .foregroundColor(Color(red: 0.471, green: 0.443, blue: 0.424)) // #78716C Warm Gray
+                .foregroundColor(Color(red: 0.471, green: 0.443, blue: 0.424))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
         }
     }
 
-    // MARK: - Centered Features (text now larger)
     private var featuresSection: some View {
         VStack(spacing: 8) {
-            FeatureBulletCentered(text: "Unlimited interactive practice", iconColor: Color(red: 0.078, green: 0.722, blue: 0.651)) // #14B8A6 Teal
-            FeatureBulletCentered(text: "Personalized study plan", iconColor: Color(red: 0.078, green: 0.722, blue: 0.651))
-            FeatureBulletCentered(text: "Real-time AI feedback", iconColor: Color(red: 0.078, green: 0.722, blue: 0.651))
-            FeatureBulletCentered(text: "Control & track your progress", iconColor: Color(red: 0.078, green: 0.722, blue: 0.651))
+            FeatureBulletCentered(text: "Daily AI-guided practice", iconColor: Color(red: 0.078, green: 0.722, blue: 0.651))
+            FeatureBulletCentered(text: "Speak, record, and recall each word", iconColor: Color(red: 0.078, green: 0.722, blue: 0.651))
+            FeatureBulletCentered(text: "Real-time feedback & progress tracking", iconColor: Color(red: 0.078, green: 0.722, blue: 0.651))
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 4)
@@ -115,8 +103,8 @@ struct PaywallView: View {
                         offerType: type,
                         isSelected: selectedOffer == type,
                         onTap: { withAnimation { selectedOffer = type } },
-                        accentColor: Color(red: 0.078, green: 0.722, blue: 0.651), // #14B8A6 Teal
-                        textColor: Color(red: 0.161, green: 0.145, blue: 0.141) // #292524 Charcoal
+                        accentColor: Color(red: 0.078, green: 0.722, blue: 0.651),
+                        textColor: Color(red: 0.161, green: 0.145, blue: 0.141)
                     )
                 }
             } else {
@@ -127,8 +115,8 @@ struct PaywallView: View {
                     offerType: .lifetime,
                     isSelected: selectedOffer == .lifetime,
                     onTap: { withAnimation { selectedOffer = .lifetime } },
-                    accentColor: Color(red: 0.078, green: 0.722, blue: 0.651), // #14B8A6 Teal
-                    textColor: Color(red: 0.161, green: 0.145, blue: 0.141) // #292524 Charcoal
+                    accentColor: Color(red: 0.078, green: 0.722, blue: 0.651),
+                    textColor: Color(red: 0.161, green: 0.145, blue: 0.141)
                 )
                 OfferCard(
                     title: "Weekly Access",
@@ -137,53 +125,43 @@ struct PaywallView: View {
                     offerType: .weekly,
                     isSelected: selectedOffer == .weekly,
                     onTap: { withAnimation { selectedOffer = .weekly } },
-                    accentColor: Color(red: 0.078, green: 0.722, blue: 0.651), // #14B8A6 Teal
-                    textColor: Color(red: 0.161, green: 0.145, blue: 0.141) // #292524 Charcoal
+                    accentColor: Color(red: 0.078, green: 0.722, blue: 0.651),
+                    textColor: Color(red: 0.161, green: 0.145, blue: 0.141)
                 )
             }
-            
-            FreeTrialCard(
-                isEnabled: $isFreeTrialEnabled,
-                textColor: Color(red: 0.161, green: 0.145, blue: 0.141), // #292524 Charcoal
-                toggleTint: Color(red: 0.078, green: 0.722, blue: 0.651) // #14B8A6 Teal
-            )
         }
     }
 
     private var dueSection: some View {
         FreeTrialDueView(
-            primaryColor: Color(red: 0.192, green: 0.18, blue: 0.506), // #312E81 Deep Indigo
-            accentColor: Color(red: 0.976, green: 0.451, blue: 0.086), // #F97316 Coral
-            selectedOffer: selectedOffer,
-            isFreeTrialEnabled: isFreeTrialEnabled
+            primaryColor: Color(red: 0.192, green: 0.18, blue: 0.506),
+            accentColor: Color(red: 0.976, green: 0.451, blue: 0.086),
+            selectedOffer: selectedOffer
         )
         .padding(.top, -10)
     }
 
     private var ctaButton: some View {
-        Button(action: {
-            Task { await purchaseSelectedOffer() }
-        }) {
-            Text(buttonText)
-                .font(.headline.bold())
-                .foregroundColor(.white)
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(Color(red: 0.078, green: 0.722, blue: 0.651)) // #14B8A6 Teal
-                .cornerRadius(16)
-                .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 3)
-                .scaleEffect(isProcessingPurchase ? 0.95 : 1.0)
-        }
-        .disabled(isProcessingPurchase)
-    }
-    
-    private var buttonText: String {
-        if selectedOffer == .lifetime {
-            return "Start Now"
-        } else if isFreeTrialEnabled {
-            return "Try Free Today →"
-        } else {
-            return "Unlock Full Access"
+        VStack(spacing: 8) {
+            Button(action: {
+                Task { await purchaseSelectedOffer() }
+            }) {
+                Text("Start Learning →")
+                    .font(.headline.bold())
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color(red: 0.078, green: 0.722, blue: 0.651))
+                    .cornerRadius(16)
+                    .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 3)
+                    .scaleEffect(isProcessingPurchase ? 0.95 : 1.0)
+            }
+            .disabled(isProcessingPurchase)
+            
+            Text("No commitment, cancel anytime")
+                .font(.footnote)
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
         }
     }
 
@@ -210,18 +188,17 @@ struct PaywallView: View {
             HStack(spacing: 20) {
                 Link("Terms of Use", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
                     .font(.subheadline)
-                    .foregroundColor(Color(red: 0.078, green: 0.722, blue: 0.651)) // #14B8A6 Teal
+                    .foregroundColor(Color(red: 0.078, green: 0.722, blue: 0.651))
                 
                 Link("Privacy Policy", destination: URL(string: "https://www.tryeloenglish.xyz/privacy")!)
                     .font(.subheadline)
-                    .foregroundColor(Color(red: 0.078, green: 0.722, blue: 0.651)) // #14B8A6 Teal
+                    .foregroundColor(Color(red: 0.078, green: 0.722, blue: 0.651))
             }
         }
         .padding(.bottom)
     }
 
     // MARK: - Purchase Functions
-
     private func purchaseSelectedOffer() async {
         guard let packages = purchaseVM.offerings?.current?.availablePackages else {
             purchaseError = "No packages available."
@@ -266,7 +243,8 @@ enum OfferType {
     case weekly
 }
 
-// MARK: - Centered Feature Bullet (text now larger: .headline)
+// MARK: - Subviews
+
 struct FeatureBulletCentered: View {
     let text: String
     let iconColor: Color
@@ -287,7 +265,6 @@ struct FeatureBulletCentered: View {
     }
 }
 
-// MARK: - Offer Card
 struct OfferCard: View {
     let title: String
     let price: String
@@ -341,34 +318,10 @@ struct OfferCard: View {
     }
 }
 
-// MARK: - Free Trial Card
-struct FreeTrialCard: View {
-    @Binding var isEnabled: Bool
-    let textColor: Color
-    let toggleTint: Color
-
-    var body: some View {
-        HStack {
-            Text("Free Trial Enabled")
-                .font(.subheadline.bold())
-                .foregroundColor(textColor)
-            Spacer()
-            Toggle("", isOn: $isEnabled)
-                .labelsHidden()
-                .tint(toggleTint)
-        }
-        .padding(12)
-        .background(Color.gray.opacity(0.12))
-        .cornerRadius(12)
-    }
-}
-
-// MARK: - Free Trial Due View
 struct FreeTrialDueView: View {
     let primaryColor: Color
     let accentColor: Color
     let selectedOffer: OfferType
-    let isFreeTrialEnabled: Bool
 
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
@@ -386,7 +339,6 @@ struct FreeTrialDueView: View {
             .padding(.top, 4)
 
             VStack(spacing: 8) {
-                // First Row
                 HStack {
                     Text("Due today")
                         .font(.subheadline.bold())
@@ -407,47 +359,7 @@ struct FreeTrialDueView: View {
                         }
                     }
                 }
-
-                // Second Row
-                HStack {
-                    Text(secondRowLeftText())
-                        .font(.headline)
-                        .foregroundColor(primaryColor)
-                    Spacer()
-                    HStack(spacing: 4) {
-                        if selectedOffer == .lifetime {
-                            Text("Save 70%")
-                                .font(.headline)
-                                .foregroundColor(.green)
-                        } else {
-                            Text("$12.95")
-                                .font(.subheadline.bold())
-                                .strikethrough()
-                                .foregroundColor(accentColor)
-                            Text("$4.99")
-                                .font(.headline)
-                                .foregroundColor(primaryColor)
-                        }
-                    }
-                }
             }
-        }
-    }
-
-    func secondRowLeftText() -> String {
-        if selectedOffer == .lifetime {
-            return "No payment for weeks"
-        } else {
-            let calendar = Calendar.current
-            let today = Date()
-            guard let trialEndDate = calendar.date(byAdding: .day, value: 6, to: today) else {
-                return "Due in 7 days"
-            }
-            let formatter = DateFormatter()
-            formatter.locale = Locale.current
-            formatter.dateFormat = "MMMM d, yyyy"
-            let dateStr = formatter.string(from: trialEndDate)
-            return "Due \(dateStr)"
         }
     }
 }

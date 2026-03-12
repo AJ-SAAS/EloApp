@@ -39,6 +39,10 @@ struct OnboardingContainerView: View {
                     )
                     .tag(OnboardingViewModel.OnboardingPage.featureProgress)
 
+                    // ✅ Scientific Method Slide
+                    ScientificMethodView() // You'll create this separate SwiftUI view
+                        .tag(OnboardingViewModel.OnboardingPage.scientificMethod)
+
                     // Free trial / paywalls
                     FreeTrialToggleView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.freeTrialToggle1)
@@ -59,7 +63,7 @@ struct OnboardingContainerView: View {
                     QuestionLongTermGoalsView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.questionLongTermGoals)
 
-                    GoalsConfirmationView(vm: vm)  // ADD THIS
+                    GoalsConfirmationView(vm: vm)
                         .tag(OnboardingViewModel.OnboardingPage.goalsConfirmation)
 
                     QuestionNativeLanguageView(vm: vm)
@@ -103,7 +107,7 @@ struct OnboardingContainerView: View {
 
                 // Bottom buttons
                 VStack {
-                    if isFeaturePage {
+                    if isFeaturePage || vm.currentPage == .scientificMethod {
                         Button("Continue") { vm.nextPage() }
                             .buttonStyle(PrimaryButtonStyle())
                             .padding()
