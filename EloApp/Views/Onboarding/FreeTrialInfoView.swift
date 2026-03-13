@@ -53,7 +53,7 @@ struct TrialTimelineView: View {
             TrialStep(
                 icon: "lock.fill",
                 title: "Today: Start learning",
-                subtitle: "Enjoy full access to lessons, games, podcasts, and more.",
+                subtitle: "Enjoy full access to unlimited words, lessons, games, and more.",
                 state: .active
             ),
             TrialStep(

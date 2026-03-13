@@ -3,6 +3,16 @@ import RevenueCat
 import FirebaseAuth
 import Combine
 
+// MARK: - Colors
+private extension Color {
+    static let eloTeal       = Color(red: 0.051, green: 0.620, blue: 0.431)   // #0D9E6E
+    static let eloTealLight  = Color(red: 0.878, green: 0.973, blue: 0.937)   // #E0F8EF
+    static let eloOrange     = Color(red: 0.910, green: 0.314, blue: 0.039)   // #E8500A
+    static let eloOrangeLight = Color(red: 1.0,  green: 0.957, blue: 0.929)   // #FFF4ED
+    static let eloText       = Color(red: 0.161, green: 0.145, blue: 0.141)
+    static let eloSubtext    = Color(red: 0.471, green: 0.443, blue: 0.424)
+}
+
 struct PaywallView: View {
     let vm: OnboardingViewModel
     var showAuthInline: Bool = false
@@ -25,7 +35,7 @@ struct PaywallView: View {
                 inlineAuth
                 bottomButtons
             }
-            .padding(.horizontal)
+            .padding(.horizontal, 20)
         }
         .background(Color.white.ignoresSafeArea())
         .onAppear { purchaseVM.fetchOfferings() }
@@ -43,51 +53,79 @@ struct PaywallView: View {
                 }
             } label: {
                 Image(systemName: "xmark")
-                    .font(.body)
-                    .foregroundColor(.primary)
-                    .padding(10)
-                    .background(Circle().fill(Color.gray.opacity(0.2)))
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.secondary)
+                    .frame(width: 34, height: 34)
+                    .background(Circle().fill(Color(.systemGray5)))
             }
-            
+
             Spacer()
-            
+
             Button("Restore") {
                 Task { await restorePurchases() }
             }
-            .font(.subheadline)
-            .foregroundColor(Color(red: 0.078, green: 0.722, blue: 0.651))
+            .font(.subheadline.weight(.medium))
+            .foregroundColor(.eloTeal)
         }
         .padding(.top, 8)
     }
 
     private var titleSection: some View {
-        VStack(spacing: 10) {
-            Text("Elo Premium")
-                .font(.title3.bold())
-                .foregroundColor(Color(red: 0.976, green: 0.451, blue: 0.086))
+        VStack(spacing: 14) {
+            // Badge pill
+            HStack(spacing: 5) {
+                Image(systemName: "star.fill")
+                    .font(.system(size: 10))
+                    .foregroundColor(.eloOrange)
+                Text("ELO PREMIUM")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.eloOrange)
+                    .kerning(0.5)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .background(
+                Capsule().fill(Color.eloOrangeLight)
+            )
+            .overlay(
+                Capsule().stroke(Color.eloOrange.opacity(0.25), lineWidth: 0.5)
+            )
 
-            Text("Master English Word by Word")
-                .font(.system(.largeTitle, design: .default).weight(.bold))
-                .foregroundColor(Color(red: 0.192, green: 0.18, blue: 0.506))
+            Text("Master English\nword by word")
+                .font(.system(size: 28, weight: .semibold, design: .default))
+                .foregroundColor(.eloText)
                 .multilineTextAlignment(.center)
-                .lineSpacing(6)
+                .lineSpacing(4)
 
-            Text("Learn, speak, and remember every word using our science-backed method. Hold your first English sentence confidently in just 7 days.")
+            Text("Hold your first confident English sentence in just 7 days, using our science-backed method.")
                 .font(.subheadline)
-                .foregroundColor(Color(red: 0.471, green: 0.443, blue: 0.424))
+                .foregroundColor(.eloSubtext)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 12)
         }
     }
 
     private var featuresSection: some View {
-        VStack(spacing: 8) {
-            FeatureBulletCentered(text: "Daily AI-guided practice", iconColor: Color(red: 0.078, green: 0.722, blue: 0.651))
-            FeatureBulletCentered(text: "Speak, record, and recall each word", iconColor: Color(red: 0.078, green: 0.722, blue: 0.651))
-            FeatureBulletCentered(text: "Real-time feedback & progress tracking", iconColor: Color(red: 0.078, green: 0.722, blue: 0.651))
+        VStack(spacing: 12) {
+            FeatureBulletCentered(
+                text: "Daily AI-guided practice sessions",
+                iconColor: .eloTeal
+            )
+            FeatureBulletCentered(
+                text: "Speak, record, and recall every word",
+                iconColor: .eloTeal
+            )
+            FeatureBulletCentered(
+                text: "Real-time feedback and progress tracking",
+                iconColor: .eloTeal
+            )
         }
+        .padding(16)
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 4)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(red: 1.0, green: 0.973, blue: 0.851))
+        )
     }
 
     private var offersSection: some View {
@@ -102,9 +140,9 @@ struct PaywallView: View {
                         subtitle: subtitle,
                         offerType: type,
                         isSelected: selectedOffer == type,
-                        onTap: { withAnimation { selectedOffer = type } },
-                        accentColor: Color(red: 0.078, green: 0.722, blue: 0.651),
-                        textColor: Color(red: 0.161, green: 0.145, blue: 0.141)
+                        onTap: { withAnimation(.easeInOut(duration: 0.18)) { selectedOffer = type } },
+                        accentColor: .eloTeal,
+                        textColor: .eloText
                     )
                 }
             } else {
@@ -114,19 +152,19 @@ struct PaywallView: View {
                     subtitle: "one-time payment",
                     offerType: .lifetime,
                     isSelected: selectedOffer == .lifetime,
-                    onTap: { withAnimation { selectedOffer = .lifetime } },
-                    accentColor: Color(red: 0.078, green: 0.722, blue: 0.651),
-                    textColor: Color(red: 0.161, green: 0.145, blue: 0.141)
+                    onTap: { withAnimation(.easeInOut(duration: 0.18)) { selectedOffer = .lifetime } },
+                    accentColor: .eloTeal,
+                    textColor: .eloText
                 )
                 OfferCard(
-                    title: "Weekly Access",
+                    title: "Weekly Premium",
                     price: "$4.99",
                     subtitle: "per week",
                     offerType: .weekly,
                     isSelected: selectedOffer == .weekly,
-                    onTap: { withAnimation { selectedOffer = .weekly } },
-                    accentColor: Color(red: 0.078, green: 0.722, blue: 0.651),
-                    textColor: Color(red: 0.161, green: 0.145, blue: 0.141)
+                    onTap: { withAnimation(.easeInOut(duration: 0.18)) { selectedOffer = .weekly } },
+                    accentColor: .eloTeal,
+                    textColor: .eloText
                 )
             }
         }
@@ -134,34 +172,41 @@ struct PaywallView: View {
 
     private var dueSection: some View {
         FreeTrialDueView(
-            primaryColor: Color(red: 0.192, green: 0.18, blue: 0.506),
-            accentColor: Color(red: 0.976, green: 0.451, blue: 0.086),
+            primaryColor: .eloTeal,
+            accentColor: .eloOrange,
             selectedOffer: selectedOffer
         )
-        .padding(.top, -10)
     }
 
     private var ctaButton: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             Button(action: {
                 Task { await purchaseSelectedOffer() }
             }) {
-                Text("Start Learning →")
-                    .font(.headline.bold())
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color(red: 0.078, green: 0.722, blue: 0.651))
-                    .cornerRadius(16)
-                    .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 3)
-                    .scaleEffect(isProcessingPurchase ? 0.95 : 1.0)
+                Group {
+                    if isProcessingPurchase {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    } else {
+                        Text(selectedOffer == .weekly ? "Start learning for free →" : "Get lifetime access →")
+                            .font(.headline)
+                    }
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 17)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.eloTeal)
+                )
+                .scaleEffect(isProcessingPurchase ? 0.97 : 1.0)
             }
             .disabled(isProcessingPurchase)
-            
-            Text("No commitment, cancel anytime")
-                .font(.footnote)
-                .foregroundColor(.gray)
-                .multilineTextAlignment(.center)
+            .animation(.easeInOut(duration: 0.15), value: isProcessingPurchase)
+
+            Text("No commitment · cancel anytime")
+                .font(.caption)
+                .foregroundColor(Color(.systemGray2))
         }
     }
 
@@ -184,21 +229,20 @@ struct PaywallView: View {
     }
 
     private var bottomButtons: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 20) {
-                Link("Terms of Use", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
-                    .font(.subheadline)
-                    .foregroundColor(Color(red: 0.078, green: 0.722, blue: 0.651))
-                
-                Link("Privacy Policy", destination: URL(string: "https://www.tryeloenglish.xyz/privacy")!)
-                    .font(.subheadline)
-                    .foregroundColor(Color(red: 0.078, green: 0.722, blue: 0.651))
-            }
+        HStack(spacing: 20) {
+            Link("Terms of use", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
+                .font(.caption)
+                .foregroundColor(Color(.systemGray2))
+
+            Link("Privacy policy", destination: URL(string: "https://www.tryeloenglish.xyz/privacy")!)
+                .font(.caption)
+                .foregroundColor(Color(.systemGray2))
         }
-        .padding(.bottom)
+        .padding(.bottom, 8)
     }
 
-    // MARK: - Purchase Functions
+    // MARK: - Purchase Functions (unchanged)
+
     private func purchaseSelectedOffer() async {
         guard let packages = purchaseVM.offerings?.current?.availablePackages else {
             purchaseError = "No packages available."
@@ -237,7 +281,7 @@ struct PaywallView: View {
     }
 }
 
-// MARK: - Offer Type
+// MARK: - Offer Type (unchanged)
 enum OfferType {
     case lifetime
     case weekly
@@ -251,17 +295,21 @@ struct FeatureBulletCentered: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 20))
-                .foregroundColor(iconColor)
+            ZStack {
+                Circle()
+                    .fill(iconColor.opacity(0.12))
+                    .frame(width: 28, height: 28)
+                Image(systemName: "checkmark")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(iconColor)
+            }
 
             Text(text)
-                .font(.headline.bold())
+                .font(.subheadline)
                 .foregroundColor(Color(red: 0.161, green: 0.145, blue: 0.141))
-                .multilineTextAlignment(.center)
+
+            Spacer()
         }
-        .frame(maxWidth: 340, alignment: .center)
-        .frame(maxWidth: .infinity)
     }
 }
 
@@ -275,16 +323,27 @@ struct OfferCard: View {
     let accentColor: Color
     let textColor: Color
 
+    private var badgeLabel: String? {
+        switch offerType {
+        case .weekly:   return "7 days free"
+        case .lifetime: return "Best value"
+        }
+    }
+
+    private var badgeColor: Color {
+        offerType == .weekly ? accentColor : Color(red: 0.910, green: 0.314, blue: 0.039)
+    }
+
     var body: some View {
         Button(action: onTap) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(title)
-                        .font(.headline.bold())
+                        .font(.subheadline.weight(.semibold))
                         .foregroundColor(textColor)
                     HStack(spacing: 4) {
                         Text(price)
-                            .font(.subheadline.bold())
+                            .font(.subheadline.weight(.semibold))
                             .foregroundColor(textColor)
                         Text(subtitle)
                             .font(.subheadline)
@@ -292,29 +351,67 @@ struct OfferCard: View {
                     }
                 }
                 Spacer()
+                // Radio indicator
                 ZStack {
                     Circle()
-                        .stroke(isSelected ? accentColor : Color.gray.opacity(0.3), lineWidth: 2)
-                        .frame(width: 24, height: 24)
+                        .stroke(
+                            isSelected ? accentColor : Color(.systemGray3),
+                            lineWidth: isSelected ? 0 : 1.5
+                        )
+                        .frame(width: 22, height: 22)
+
                     if isSelected {
+                        Circle()
+                            .fill(accentColor)
+                            .frame(width: 22, height: 22)
                         Image(systemName: "checkmark")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(accentColor)
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.white)
                     }
                 }
             }
-            .padding()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
             .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(isSelected ? accentColor.opacity(0.08) : Color.gray.opacity(0.08))
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(isSelected ? accentColor.opacity(0.07) : Color(.systemBackground))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(isSelected ? accentColor : Color.gray.opacity(0.3), lineWidth: 1.5)
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(
+                        isSelected ? accentColor : Color(.systemGray4),
+                        lineWidth: isSelected ? 2 : 0.5
+                    )
             )
-            .shadow(color: isSelected ? accentColor.opacity(0.15) : Color.clear, radius: 4, x: 0, y: 2)
         }
         .buttonStyle(PlainButtonStyle())
+        // Floating badge
+        .overlay(alignment: .topLeading) {
+            if let label = badgeLabel {
+                Text(label)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(offerType == .weekly ? .white : Color(red: 0.773, green: 0.196, blue: 0.024))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule().fill(
+                            offerType == .weekly
+                                ? accentColor
+                                : Color(red: 1.0, green: 0.957, blue: 0.929)
+                        )
+                    )
+                    .overlay(
+                        Capsule().stroke(
+                            offerType == .weekly
+                                ? Color.clear
+                                : Color(red: 0.910, green: 0.314, blue: 0.039).opacity(0.3),
+                            lineWidth: 0.5
+                        )
+                    )
+                    .offset(x: 12, y: -11)
+            }
+        }
+        .padding(.top, badgeLabel != nil ? 8 : 0)
     }
 }
 
@@ -324,42 +421,24 @@ struct FreeTrialDueView: View {
     let selectedOffer: OfferType
 
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            VStack(spacing: 0) {
-                Circle()
-                    .fill(Color.gray.opacity(0.6))
-                    .frame(width: 8, height: 8)
-                Rectangle()
-                    .fill(Color.gray.opacity(0.6))
-                    .frame(width: 2, height: 16)
-                Circle()
-                    .fill(Color.gray.opacity(0.6))
-                    .frame(width: 8, height: 8)
-            }
-            .padding(.top, 4)
-
-            VStack(spacing: 8) {
-                HStack {
-                    Text("Due today")
-                        .font(.subheadline.bold())
-                        .foregroundColor(primaryColor)
-                    Spacer()
-                    HStack(spacing: 4) {
-                        if selectedOffer == .lifetime {
-                            Text("$17.99")
-                                .font(.headline)
-                                .foregroundColor(primaryColor)
-                        } else {
-                            Text("7 days free")
-                                .font(.subheadline.bold())
-                                .foregroundColor(.green)
-                            Text("$0.00")
-                                .font(.subheadline)
-                                .foregroundColor(primaryColor)
-                        }
-                    }
-                }
+        HStack {
+            Text("Due today")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            Spacer()
+            if selectedOffer == .lifetime {
+                Text("$17.99")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(primaryColor)
+            } else {
+                Text("$0.00")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(primaryColor)
+                Text("· free for 7 days")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
             }
         }
+        .padding(.horizontal, 4)
     }
 }
