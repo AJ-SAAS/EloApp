@@ -39,11 +39,13 @@ struct WelcomeView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Welcome to Elo!")
                         .font(.system(size: 36, weight: .regular, design: .serif))
+                        .fixedSize(horizontal: false, vertical: true)
 
                     Text("Boost your language skills with Elo effortlessly anytime, anywhere.")
                         .font(.system(size: 20))
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 16)

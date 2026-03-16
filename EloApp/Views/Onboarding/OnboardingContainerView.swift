@@ -7,105 +7,104 @@ struct OnboardingContainerView: View {
 
     var body: some View {
         ZStack {
-            Color.white
-                .ignoresSafeArea()
+            Color.white.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                TabView(selection: $vm.currentPage) {
 
-                    // Welcome
-                    WelcomeView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.welcome)
+                // MARK: - Page Content
+                ZStack {
+                    switch vm.currentPage {
 
-                    // Feature slides (edge-to-edge)
-                    FeatureIntroView(
-                        title: "Your Personal AI English Tutor",
-                        subtitle: "Get instant feedback and guidance tailored just for you.",
-                        imageName: "eloob3"
-                    )
-                    .tag(OnboardingViewModel.OnboardingPage.featureTutor)
+                    case .welcome:
+                        WelcomeView(vm: vm)
 
-                    FeatureIntroView(
-                        title: "Track & Improve",
-                        subtitle: "Elo shows you where to improve and helps you practice those skills.",
-                        imageName: "eloob2"
-                    )
-                    .tag(OnboardingViewModel.OnboardingPage.featureFeedback)
+                    case .featureTutor:
+                        FeatureIntroView(
+                            title: "Your Personal AI English Tutor",
+                            subtitle: "Get instant feedback and guidance tailored just for you.",
+                            imageName: "eloob3"
+                        )
 
-                    FeatureIntroView(
-                        title: "Progress & Grow",
-                        subtitle: "Elo creates a personalized learning path for you.",
-                        imageName: "eloob6"
-                    )
-                    .tag(OnboardingViewModel.OnboardingPage.featureProgress)
+                    case .featureFeedback:
+                        FeatureIntroView(
+                            title: "Track & Improve",
+                            subtitle: "Elo shows you where to improve and helps you practice those skills.",
+                            imageName: "eloob2"
+                        )
 
-                    // ✅ Scientific Method Slide
-                    ScientificMethodView() // You'll create this separate SwiftUI view
-                        .tag(OnboardingViewModel.OnboardingPage.scientificMethod)
+                    case .featureProgress:
+                        FeatureIntroView(
+                            title: "Progress & Grow",
+                            subtitle: "Elo creates a personalized learning path for you.",
+                            imageName: "eloob6"
+                        )
 
-                    // Free trial / paywalls
-                    FreeTrialToggleView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.freeTrialToggle1)
+                    case .freeTrialToggle1, .freeTrialToggle2:
+                        FreeTrialToggleView(vm: vm)
 
-                    FreeTrialInfoView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.freeTrialInfo1)
+                    case .freeTrialInfo1, .freeTrialInfo2:
+                        FreeTrialInfoView(vm: vm)
 
-                    PaywallView(vm: vm, showAuthInline: false)
-                        .tag(OnboardingViewModel.OnboardingPage.paywall1)
+                    case .paywall1:
+                        PaywallView(vm: vm, showAuthInline: false)
+                            .environmentObject(authVM)
 
-                    // Questions
-                    QuestionNameView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.questionName)
-                    
-                    QuestionShortTermGoalsView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.questionShortTermGoals)
-                    
-                    QuestionLongTermGoalsView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.questionLongTermGoals)
+                    case .paywall2:
+                        PaywallView(vm: vm, showAuthInline: true)
+                            .environmentObject(authVM)
 
-                    GoalsConfirmationView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.goalsConfirmation)
+                    case .questionName:
+                        QuestionNameView(vm: vm)
 
-                    QuestionNativeLanguageView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.questionNativeLang)
-                    
-                    QuestionEnglishLevelView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.questionLevel)
-                    
-                    QuestionInterestsView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.questionInterests)
-                    
-                    QuestionImprovementAreasView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.questionAreas)
-                    
-                    QuestionDailyGoalView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.questionGoal)
-                    
-                    QuestionReminderTimeView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.questionReminder)
-                    
-                    QuestionNotificationsView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.questionNotifications)
+                    case .scientificMethod:
+                        ScientificMethodView(vm: vm)
 
-                    // Preparing Plan
-                    PreparingPlanView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.preparingPlan)
+                    case .questionShortTermGoals:
+                        QuestionShortTermGoalsView(vm: vm)
 
-                    // Second free trial / paywall
-                    FreeTrialToggleView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.freeTrialToggle2)
+                    case .questionLongTermGoals:
+                        QuestionLongTermGoalsView(vm: vm)
 
-                    FreeTrialInfoView(vm: vm)
-                        .tag(OnboardingViewModel.OnboardingPage.freeTrialInfo2)
+                    case .goalsConfirmation:
+                        GoalsConfirmationView(vm: vm)
 
-                    PaywallView(vm: vm, showAuthInline: true)
-                        .environmentObject(authVM)
-                        .tag(OnboardingViewModel.OnboardingPage.paywall2)
+                    case .questionNativeLang:
+                        QuestionNativeLanguageView(vm: vm)
+
+                    case .questionLevel:
+                        QuestionEnglishLevelView(vm: vm)
+
+                    case .questionInterests:
+                        QuestionInterestsView(vm: vm)
+
+                    case .questionAreas:
+                        QuestionImprovementAreasView(vm: vm)
+
+                    case .questionGoal:
+                        QuestionDailyGoalView(vm: vm)
+
+                    case .questionReminder:
+                        QuestionReminderTimeView(vm: vm)
+
+                    case .questionNotifications:
+                        QuestionNotificationsView(vm: vm)
+
+                    case .preparingPlan:
+                        PreparingPlanView(vm: vm)
+
+                    case .authSetup:
+                        AuthView()
+                            .environmentObject(authVM)
+                    }
                 }
-                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                .animation(.easeInOut, value: vm.currentPage)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing),
+                    removal: .move(edge: .leading)
+                ))
+                .id(vm.currentPage)
 
-                // Bottom buttons
+                // MARK: - Bottom Buttons
                 VStack {
                     if isFeaturePage || vm.currentPage == .scientificMethod {
                         Button("Continue") { vm.nextPage() }
@@ -128,20 +127,38 @@ struct OnboardingContainerView: View {
                 }
             }
         }
+        .onAppear {
+            Task {
+                await vm.runSkipPaywallsIfNeeded(authVM: authVM)
+            }
+        }
     }
 
     // MARK: - Helpers
+
     private var isFeaturePage: Bool {
         [.featureTutor, .featureFeedback, .featureProgress].contains(vm.currentPage)
     }
 
     private var isQuestionPage: Bool {
-        vm.currentPage.rawValue >= OnboardingViewModel.OnboardingPage.questionName.rawValue &&
-        vm.currentPage.rawValue <= OnboardingViewModel.OnboardingPage.questionNotifications.rawValue
+        [
+            .questionName,
+            .scientificMethod,
+            .questionShortTermGoals,
+            .questionLongTermGoals,
+            .goalsConfirmation,
+            .questionNativeLang,
+            .questionLevel,
+            .questionInterests,
+            .questionAreas,
+            .questionGoal,
+            .questionReminder,
+            .questionNotifications
+        ].contains(vm.currentPage)
     }
 
     private var isFreeTrialInfoPage: Bool {
-        vm.currentPage == .freeTrialInfo1 || vm.currentPage == .freeTrialInfo2
+        [.freeTrialInfo1, .freeTrialInfo2].contains(vm.currentPage)
     }
 
     private func isCurrentQuestionValid() -> Bool {
@@ -164,6 +181,20 @@ struct OnboardingContainerView: View {
             return !vm.dailyGoal.isEmpty
         default:
             return true
+        }
+    }
+}
+
+// MARK: - OnboardingViewModel extension
+
+extension OnboardingViewModel {
+    @MainActor
+    func runSkipPaywallsIfNeeded(authVM: AuthViewModel) async {
+        if authVM.isSignedIn || isSubscribed {
+            isSubscribed = true
+            if isPaywall(currentPage) {
+                nextPage()
+            }
         }
     }
 }

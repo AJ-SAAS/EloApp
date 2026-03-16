@@ -3,16 +3,6 @@ import RevenueCat
 import FirebaseAuth
 import Combine
 
-// MARK: - Colors
-private extension Color {
-    static let eloTeal       = Color(red: 0.051, green: 0.620, blue: 0.431)   // #0D9E6E
-    static let eloTealLight  = Color(red: 0.878, green: 0.973, blue: 0.937)   // #E0F8EF
-    static let eloOrange     = Color(red: 0.910, green: 0.314, blue: 0.039)   // #E8500A
-    static let eloOrangeLight = Color(red: 1.0,  green: 0.957, blue: 0.929)   // #FFF4ED
-    static let eloText       = Color(red: 0.161, green: 0.145, blue: 0.141)
-    static let eloSubtext    = Color(red: 0.471, green: 0.443, blue: 0.424)
-}
-
 struct PaywallView: View {
     let vm: OnboardingViewModel
     var showAuthInline: Bool = false
@@ -72,7 +62,6 @@ struct PaywallView: View {
 
     private var titleSection: some View {
         VStack(spacing: 14) {
-            // Badge pill
             HStack(spacing: 5) {
                 Image(systemName: "star.fill")
                     .font(.system(size: 10))
@@ -84,12 +73,8 @@ struct PaywallView: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 6)
-            .background(
-                Capsule().fill(Color.eloOrangeLight)
-            )
-            .overlay(
-                Capsule().stroke(Color.eloOrange.opacity(0.25), lineWidth: 0.5)
-            )
+            .background(Capsule().fill(Color.eloOrangeLight))
+            .overlay(Capsule().stroke(Color.eloOrange.opacity(0.25), lineWidth: 0.5))
 
             Text("Master English\nword by word")
                 .font(.system(size: 28, weight: .semibold, design: .default))
@@ -107,18 +92,9 @@ struct PaywallView: View {
 
     private var featuresSection: some View {
         VStack(spacing: 12) {
-            FeatureBulletCentered(
-                text: "Daily AI-guided practice sessions",
-                iconColor: .eloTeal
-            )
-            FeatureBulletCentered(
-                text: "Speak, record, and recall every word",
-                iconColor: .eloTeal
-            )
-            FeatureBulletCentered(
-                text: "Real-time feedback and progress tracking",
-                iconColor: .eloTeal
-            )
+            FeatureBulletCentered(text: "Daily AI-guided practice sessions", iconColor: .eloTeal)
+            FeatureBulletCentered(text: "Speak, record, and recall every word", iconColor: .eloTeal)
+            FeatureBulletCentered(text: "Real-time feedback and progress tracking", iconColor: .eloTeal)
         }
         .padding(16)
         .frame(maxWidth: .infinity)
@@ -195,10 +171,7 @@ struct PaywallView: View {
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 17)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(Color.eloTeal)
-                )
+                .background(RoundedRectangle(cornerRadius: 14).fill(Color.eloTeal))
                 .scaleEffect(isProcessingPurchase ? 0.97 : 1.0)
             }
             .disabled(isProcessingPurchase)
@@ -233,7 +206,6 @@ struct PaywallView: View {
             Link("Terms of use", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
                 .font(.caption)
                 .foregroundColor(Color(.systemGray2))
-
             Link("Privacy policy", destination: URL(string: "https://www.tryeloenglish.xyz/privacy")!)
                 .font(.caption)
                 .foregroundColor(Color(.systemGray2))
@@ -241,7 +213,7 @@ struct PaywallView: View {
         .padding(.bottom, 8)
     }
 
-    // MARK: - Purchase Functions (unchanged)
+    // MARK: - Purchase Functions
 
     private func purchaseSelectedOffer() async {
         guard let packages = purchaseVM.offerings?.current?.availablePackages else {
@@ -260,8 +232,11 @@ struct PaywallView: View {
             let success = await purchaseVM.purchase(package: package)
             if success {
                 ProgressTracker.shared.hasPremiumAccess = true
+                vm.isSubscribed = true  // ✅ tells isValidPage() to skip all remaining paywall pages
                 vm.skipPaywall()
-            } else { purchaseError = "Purchase failed. Try again." }
+            } else {
+                purchaseError = "Purchase failed. Try again."
+            }
         } else {
             purchaseError = "Selected package not found."
         }
@@ -274,6 +249,7 @@ struct PaywallView: View {
         await purchaseVM.restorePurchases()
         if purchaseVM.hasPremiumAccess() {
             ProgressTracker.shared.hasPremiumAccess = true
+            vm.isSubscribed = true  // ✅ same fix for restore
             vm.skipPaywall()
         } else {
             purchaseError = "No active purchases found."
@@ -281,7 +257,7 @@ struct PaywallView: View {
     }
 }
 
-// MARK: - Offer Type (unchanged)
+// MARK: - Offer Type
 enum OfferType {
     case lifetime
     case weekly
@@ -303,11 +279,9 @@ struct FeatureBulletCentered: View {
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(iconColor)
             }
-
             Text(text)
                 .font(.subheadline)
                 .foregroundColor(Color(red: 0.161, green: 0.145, blue: 0.141))
-
             Spacer()
         }
     }
@@ -330,10 +304,6 @@ struct OfferCard: View {
         }
     }
 
-    private var badgeColor: Color {
-        offerType == .weekly ? accentColor : Color(red: 0.910, green: 0.314, blue: 0.039)
-    }
-
     var body: some View {
         Button(action: onTap) {
             HStack {
@@ -351,7 +321,6 @@ struct OfferCard: View {
                     }
                 }
                 Spacer()
-                // Radio indicator
                 ZStack {
                     Circle()
                         .stroke(
@@ -359,7 +328,6 @@ struct OfferCard: View {
                             lineWidth: isSelected ? 0 : 1.5
                         )
                         .frame(width: 22, height: 22)
-
                     if isSelected {
                         Circle()
                             .fill(accentColor)
@@ -385,7 +353,6 @@ struct OfferCard: View {
             )
         }
         .buttonStyle(PlainButtonStyle())
-        // Floating badge
         .overlay(alignment: .topLeading) {
             if let label = badgeLabel {
                 Text(label)

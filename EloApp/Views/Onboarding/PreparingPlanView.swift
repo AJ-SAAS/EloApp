@@ -12,20 +12,18 @@ struct PreparingPlanView: View {
         "Optimizing your learning path",
         "Finalizing your plan"
     ]
-    
-    // MARK: Colors
-    private let gradientColors = [Color.purple, Color.pink]
+
+    private let gradientColors = [Color.eloTeal, Color.eloTealLight]
 
     var body: some View {
         VStack(spacing: 40) {
             Spacer(minLength: 40)
-            
-            // MARK: Circular Progress with Pulsing Icon
+
             ZStack {
                 Circle()
-                    .stroke(Color.gray.opacity(0.2), lineWidth: 12)
+                    .stroke(Color.eloTeal.opacity(0.1), lineWidth: 12)
                     .frame(width: 180, height: 180)
-                
+
                 Circle()
                     .trim(from: 0, to: progress)
                     .stroke(
@@ -40,37 +38,45 @@ struct PreparingPlanView: View {
                     .rotationEffect(.degrees(-90))
                     .frame(width: 180, height: 180)
                     .animation(.easeInOut(duration: 0.8), value: progress)
-                
-                Image(systemName: "book.circle.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(.purple)
-                    .scaleEffect(animatePulse ? 1.15 : 1)
-                    .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: animatePulse)
+
+                ZStack {
+                    Circle()
+                        .fill(Color.eloTeal.opacity(0.1))
+                        .frame(width: 100, height: 100)
+                        .scaleEffect(animatePulse ? 1.15 : 1)
+                        .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: animatePulse)
+
+                    Image(systemName: "book.circle.fill")
+                        .font(.system(size: 60))
+                        .foregroundColor(.eloTeal)
+                        .scaleEffect(animatePulse ? 1.08 : 1)
+                        .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: animatePulse)
+                }
             }
             .onAppear { animatePulse = true }
-            
-            // MARK: Title - Apple-grade serif font
+
             Text("Personalizing your learning plan…")
                 .font(.system(size: 28, weight: .regular, design: .serif))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
                 .foregroundColor(.primary)
-            
-            // MARK: Animated Bullet List
+                .fixedSize(horizontal: false, vertical: true)
+
             VStack(alignment: .leading, spacing: 24) {
                 ForEach(Array(bullets.enumerated()), id: \.offset) { index, text in
                     HStack(spacing: 12) {
                         Image(systemName: index <= currentBulletIndex ? "checkmark.circle.fill" : "circle")
-                            .foregroundColor(index <= currentBulletIndex ? .green : .gray)
+                            .foregroundColor(index <= currentBulletIndex ? .eloTeal : Color.eloTeal.opacity(0.3))
+                            .font(.system(size: 22))
                             .scaleEffect(index == currentBulletIndex ? 1.2 : 1)
                             .animation(.spring(response: 0.4, dampingFraction: 0.6), value: currentBulletIndex)
-                        
+
                         Text(text)
                             .foregroundColor(index <= currentBulletIndex ? .primary : .secondary)
-                            .font(.system(size: 20, weight: .semibold)) // Updated to Apple-grade bullet font
-                            .opacity(index <= currentBulletIndex ? 1 : 0)
-                            .offset(x: index <= currentBulletIndex ? 0 : -20, y: 0)
-                            .scaleEffect(index <= currentBulletIndex ? 1 : 0.95)
+                            .font(.system(size: 18, weight: .semibold))
+                            .fixedSize(horizontal: false, vertical: true)
+                            .opacity(index <= currentBulletIndex ? 1 : 0.4)
+                            .offset(x: index <= currentBulletIndex ? 0 : -20)
                             .animation(
                                 .interpolatingSpring(stiffness: 200, damping: 18)
                                     .delay(Double(index) * 0.1),
@@ -79,14 +85,14 @@ struct PreparingPlanView: View {
                     }
                 }
             }
-            .padding(.horizontal, 24)
-            
+            .padding(.horizontal, 32)
+
             Spacer()
         }
         .padding()
         .background(
             LinearGradient(
-                colors: [Color.white, Color(red: 250/255, green: 245/255, blue: 255/255)],
+                colors: [Color.white, Color.eloTeal.opacity(0.04)],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -94,8 +100,7 @@ struct PreparingPlanView: View {
         )
         .onAppear { runProgressSequence() }
     }
-    
-    // MARK: Progress Sequence with pauses per bullet
+
     private func runProgressSequence() {
         let delays: [Double] = [0.5, 0.5, 1.0, 1.0]
         let holdTime: Double = 0.5

@@ -1,5 +1,5 @@
 import SwiftUI
-import AVFoundation
+import AVFAudio
 import Speech
 import FirebaseAuth
 import FirebaseFirestore
@@ -36,7 +36,7 @@ extension View {
             .fontWeight(.bold)
             .frame(maxWidth: .infinity)
             .padding()
-            .background(Color.black)
+            .background(Color.eloTeal)
             .cornerRadius(14)
     }
 
@@ -50,7 +50,7 @@ extension View {
     }
 }
 
-// MARK: - Settings Row (Standard subtle row)
+// MARK: - Settings Row
 struct SettingsRow: View {
     let title: String
     let action: () -> Void
@@ -67,7 +67,7 @@ struct SettingsRow: View {
             .background(Color.gray.opacity(0.1))
             .cornerRadius(14)
         }
-        .padding(.horizontal) // Ensures consistent horizontal margins
+        .padding(.horizontal)
     }
 }
 
@@ -75,6 +75,7 @@ struct SettingsRow: View {
 struct SettingsView: View {
     @EnvironmentObject var authVM: AuthViewModel
     @EnvironmentObject var purchaseVM: PurchaseViewModel
+    @StateObject private var progress = ProgressTracker.shared
 
     // Preferences
     @AppStorage("pref_notifications") private var notificationsEnabled = true
@@ -84,7 +85,7 @@ struct SettingsView: View {
 
     // Permissions
     @State private var micAvailable =
-        AVAudioSession.sharedInstance().recordPermission == .granted
+        AVAudioApplication.shared.recordPermission == .granted
     @State private var speechAvailable =
         SFSpeechRecognizer.authorizationStatus() == .authorized
 
@@ -94,6 +95,11 @@ struct SettingsView: View {
     @State private var showResetPasswordPrompt = false
     @State private var password = ""
     @State private var newPassword = ""
+
+    // ✅ Single source of truth for premium status
+    private var hasPremium: Bool {
+        purchaseVM.hasPremiumAccess() || progress.hasPremiumAccess
+    }
 
     var body: some View {
         NavigationStack {
@@ -105,7 +111,6 @@ struct SettingsView: View {
                         sectionTitle("Account")
 
                         if let email = authVM.userEmail {
-                            // Email display - consistent styling without extra width
                             HStack {
                                 Text("Email")
                                     .foregroundColor(.gray)
@@ -118,7 +123,6 @@ struct SettingsView: View {
                             .cornerRadius(14)
                             .padding(.horizontal)
 
-                            // Reset Password - now identical width/height to others
                             SettingsRow(title: "Reset Password") {
                                 showResetPasswordPrompt = true
                             }
@@ -186,17 +190,39 @@ struct SettingsView: View {
                     VStack(spacing: 12) {
                         sectionTitle("Subscriptions")
 
-                        if purchaseVM.hasPremiumAccess() {
-                            // User has premium → subtle checkmark row
-                            SettingsRow(title: "Elo Premium ✓") {
-                                // Optional: could open a premium features screen
+                        if hasPremium {
+                            // ✅ Show premium badge instead of upgrade button
+                            HStack(spacing: 10) {
+                                Image(systemName: "checkmark.seal.fill")
+                                    .foregroundColor(.eloTeal)
+                                    .font(.system(size: 20))
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Elo Premium Active")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundColor(.primary)
+                                    Text("You have full access")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
                             }
+                            .padding()
+                            .background(Color.eloTeal.opacity(0.08))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(Color.eloTeal.opacity(0.2), lineWidth: 1)
+                            )
+                            .cornerRadius(14)
+                            .padding(.horizontal)
+
                         } else {
-                            // User does NOT have premium → prominent black button
                             Button("👑 Get Elo Premium") {
                                 Task {
                                     if let package = purchaseVM.offerings?.current?.availablePackages.first {
-                                        _ = await purchaseVM.purchase(package: package)
+                                        let success = await purchaseVM.purchase(package: package)
+                                        if success {
+                                            ProgressTracker.shared.hasPremiumAccess = true
+                                        }
                                     } else {
                                         print("⚠️ No package available to purchase")
                                     }
@@ -213,6 +239,9 @@ struct SettingsView: View {
                         SettingsRow(title: "Restore Subscription") {
                             Task {
                                 await purchaseVM.restorePurchases()
+                                if purchaseVM.hasPremiumAccess() {
+                                    ProgressTracker.shared.hasPremiumAccess = true
+                                }
                             }
                         }
                     }
@@ -264,9 +293,12 @@ struct SettingsView: View {
                 .padding(.top, 20)
             }
             .navigationTitle("Settings")
-            .onAppear(perform: updatePermissions)
+            .onAppear {
+                updatePermissions()
+                purchaseVM.fetchCustomerInfo() // ✅ refresh purchase state on appear
+            }
 
-            // MARK: - Alerts (unchanged)
+            // MARK: - Alerts
             .alert("Delete Account?",
                    isPresented: $showDeleteConfirm) {
                 Button("Delete", role: .destructive) {
@@ -324,10 +356,8 @@ struct SettingsView: View {
 
     // MARK: - Helpers
     private func updatePermissions() {
-        micAvailable =
-            AVAudioSession.sharedInstance().recordPermission == .granted
-        speechAvailable =
-            SFSpeechRecognizer.authorizationStatus() == .authorized
+        micAvailable = AVAudioApplication.shared.recordPermission == .granted
+        speechAvailable = SFSpeechRecognizer.authorizationStatus() == .authorized
     }
 
     private func openLink(_ url: String) {
@@ -353,7 +383,7 @@ struct SettingsView: View {
             Text(title)
             Spacer()
             Circle()
-                .fill(enabled ? .green : .red)
+                .fill(enabled ? Color.eloTeal : .red)
                 .frame(width: 12, height: 12)
         }
     }

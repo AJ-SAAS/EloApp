@@ -7,11 +7,8 @@ struct FeatureIntroView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-
-            // ⬇️ Push image down slightly from top
             Spacer(minLength: 40)
 
-            // IMAGE
             Image(imageName)
                 .resizable()
                 .scaledToFit()
@@ -19,23 +16,22 @@ struct FeatureIntroView: View {
                 .clipped()
                 .padding(.horizontal, 10)
 
-            // ⬇️ More space between image and text
             Spacer(minLength: 32)
 
-            // TEXT
             VStack(alignment: .leading, spacing: 14) {
                 Text(title)
                     .font(.system(size: 36, weight: .regular, design: .serif))
                     .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Text(subtitle)
                     .font(.system(size: 20))
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, 24)
 
-            // ⬇️ Less space before button so text sits lower
             Spacer(minLength: 24)
         }
         .padding(.bottom, 24)

@@ -11,7 +11,6 @@ struct AuthView: View {
     var body: some View {
         VStack(spacing: 20) {
 
-            // Hero Title – Apple font applied
             Text(isSignUp ? "Create Account" : "Welcome Back")
                 .font(.system(.largeTitle, design: .default).weight(.bold))
                 .padding(.bottom, 40)
@@ -61,9 +60,11 @@ struct AuthView: View {
             Button {
                 isSignUp.toggle()
             } label: {
-                Text(isSignUp
-                     ? "Already have an account? Sign In"
-                     : "Don't have an account? Sign Up")
+                Text(
+                    isSignUp
+                    ? "Already have an account? Sign In"
+                    : "Don't have an account? Sign Up"
+                )
             }
             .foregroundColor(.blue)
 
@@ -82,19 +83,27 @@ struct AuthView: View {
 
     private func handleAuth() {
         Task {
+
             if isSignUp {
+
                 guard password == confirmPassword else {
                     authVM.errorMessage = "Passwords do not match"
                     return
                 }
 
                 let success = await authVM.register(email: email, password: password)
+
                 if success {
                     authVM.completeOnboarding()
                 }
 
             } else {
-                _ = await authVM.signIn(email: email, password: password)
+
+                let success = await authVM.signIn(email: email, password: password)
+
+                if success {
+                    authVM.completeOnboarding()
+                }
             }
         }
     }

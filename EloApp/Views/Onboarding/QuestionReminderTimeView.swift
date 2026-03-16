@@ -2,17 +2,18 @@ import SwiftUI
 
 struct QuestionReminderTimeView: View {
     @ObservedObject var vm: OnboardingViewModel
-    
+
     var body: some View {
         ZStack(alignment: .topLeading) {
             VStack(spacing: 40) {
                 Spacer().frame(height: 40)
-                
+
                 Text("Pick a time of the day to start your practice every day")
                     .font(.system(size: 36, weight: .regular, design: .serif))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
-                
+                    .fixedSize(horizontal: false, vertical: true)
+
                 DatePicker(
                     "Reminder Time",
                     selection: $vm.reminderTime,
@@ -20,14 +21,13 @@ struct QuestionReminderTimeView: View {
                 )
                 .datePickerStyle(WheelDatePickerStyle())
                 .labelsHidden()
-                
+                .accentColor(.eloTeal)
+
                 Spacer()
             }
             .padding()
-            
-            Button {
-                vm.previousPage()
-            } label: {
+
+            Button { vm.previousPage() } label: {
                 Image(systemName: "chevron.left")
                     .font(.title2.bold())
                     .foregroundColor(.primary)

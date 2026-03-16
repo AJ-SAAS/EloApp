@@ -2,8 +2,6 @@ import SwiftUI
 
 // MARK: - Colors
 private extension Color {
-    static let eloTeal        = Color(red: 0.051, green: 0.620, blue: 0.431)  // #0D9E6E
-    static let eloTealLight   = Color(red: 0.878, green: 0.973, blue: 0.937)  // #E0F8EF
 
     // Per-step colors
     static let stepBlue       = Color(red: 0.145, green: 0.388, blue: 0.922)  // #2563EB
@@ -21,11 +19,28 @@ private extension Color {
 
 struct ScientificMethodView: View {
 
+    @ObservedObject var vm: OnboardingViewModel
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
 
                 Spacer().frame(height: 20)
+
+                // 🔹 Personalized Greeting
+                if !vm.userName.isEmpty {
+                    Text("Awesome, great to meet you, \(vm.userName)!")
+                        .font(.system(size: 28, weight: .medium, design: .serif))
+                        .foregroundColor(.primary)
+                        .padding(.bottom, 6)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text("Did you know…")
+                        .font(.system(size: 16))
+                        .foregroundColor(.secondary)
+                        .padding(.bottom, 20)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
 
                 // BADGE
                 HStack(spacing: 6) {
@@ -36,6 +51,7 @@ struct ScientificMethodView: View {
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(Color(red: 0.039, green: 0.478, blue: 0.329))
                         .kerning(0.5)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
@@ -49,12 +65,14 @@ struct ScientificMethodView: View {
                     .foregroundColor(.primary)
                     .lineSpacing(4)
                     .padding(.bottom, 10)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 // SUBTITLE
                 Text("How you will learn every word.")
                     .font(.system(size: 16))
                     .foregroundColor(.secondary)
                     .padding(.bottom, 28)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 // STEP 1
                 MethodBlock(
@@ -114,6 +132,7 @@ struct ScientificMethodView: View {
                     Text("Based on real science. Tap any link to learn more.")
                         .font(.footnote)
                         .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -139,7 +158,6 @@ struct StepConnector: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // Aligns with the center of the 40pt circle
             HStack {
                 Rectangle()
                     .fill(
@@ -150,7 +168,7 @@ struct StepConnector: View {
                         )
                     )
                     .frame(width: 2, height: 24)
-                    .padding(.leading, 19) // (40pt circle / 2) - (2pt line / 2)
+                    .padding(.leading, 19)
                 Spacer()
             }
 
@@ -160,7 +178,7 @@ struct StepConnector: View {
             Text("then")
                 .font(.system(size: 12))
                 .foregroundColor(Color(.tertiaryLabel))
-                .padding(.leading, 56), // circle width (40) + gap (16)
+                .padding(.leading, 56),
             alignment: .leading
         )
         .frame(height: 24)
@@ -217,6 +235,7 @@ struct MethodBlock: View {
                 HStack(spacing: 6) {
                     Text(title)
                         .font(.system(size: 20, weight: .semibold))
+                        .fixedSize(horizontal: false, vertical: true)
                     Text(emoji)
                         .font(.system(size: 18))
                 }
@@ -227,6 +246,7 @@ struct MethodBlock: View {
                     .font(.system(size: 15))
                     .foregroundColor(.secondary)
                     .padding(.bottom, 10)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 // CLICKABLE RESEARCH LINK
                 Link(destination: URL(string: url)!) {
@@ -235,6 +255,7 @@ struct MethodBlock: View {
                             .font(.system(size: 10, weight: .semibold))
                         Text(linkText)
                             .font(.system(size: 12, weight: .medium))
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .foregroundColor(color)
                     .padding(.horizontal, 10)

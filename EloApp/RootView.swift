@@ -3,7 +3,7 @@ import SwiftUI
 struct RootView: View {
     @EnvironmentObject var authVM: AuthViewModel
     
-    // Shared singleton for basic progress flags (streak, etc.)
+    // Shared singleton for progress flags (streak, etc.)
     @StateObject private var progress = ProgressTracker.shared
     
     // Shared view model for UI progress display
@@ -11,35 +11,41 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            // ✅ Fully authenticated: go to main app
+
+            // ✅ Fully authenticated → Main App
             if authVM.isSignedIn && authVM.hasEmailAccount {
                 MainTabView()
                     .environmentObject(progressVM)
             }
-            // ⛔ Signed in but no email linked (e.g., Apple sign-in only)
+
+            // ⛔ Signed in but no email linked
             else if authVM.isSignedIn {
                 NavigationStack {
                     AuthView()
+                        .environmentObject(authVM)
                 }
             }
-            // ❌ Not signed in at all
+
+            // ❌ Not signed in
             else {
-                if ProgressTracker.shared.onboardingCompleted {
-                    // Onboarding done before → go to sign in/up
+
+                // Onboarding already completed → Auth
+                if progress.onboardingCompleted {
                     NavigationStack {
                         AuthView()
                             .environmentObject(authVM)
                     }
-                } else {
-                    // First time user → show onboarding
+                }
+
+                // First time user → Onboarding
+                else {
                     OnboardingContainerView()
-                        .environmentObject(authVM)  // Critical: paywall needs authVM!
+                        .environmentObject(authVM)
                 }
             }
         }
-        // Optional: Refresh progress data when view appears
         .onAppear {
-            progressVM.load()  // Ensures latest XP, streak, etc.
+            progressVM.load()
         }
     }
 }

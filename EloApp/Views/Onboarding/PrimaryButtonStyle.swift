@@ -8,9 +8,7 @@ struct PrimaryButtonStyle: ButtonStyle {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 18)
             .padding(.horizontal, 20)
-            .background(
-                Color.blue // ✅ Solid blue background
-            )
+            .background(Color.eloTeal)
             .cornerRadius(14)
             .padding(.horizontal)
             .opacity(configuration.isPressed ? 0.85 : 1.0)

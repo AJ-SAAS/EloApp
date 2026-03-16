@@ -10,6 +10,7 @@ final class AuthViewModel: ObservableObject {
     // MARK: - Published State
     @Published var isSignedIn = false
     @Published var hasEmailAccount = false
+    @Published var isSubscribed = false
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -25,9 +26,11 @@ final class AuthViewModel: ObservableObject {
             guard let self else { return }
 
             self.isSignedIn = user != nil
+
             self.hasEmailAccount =
                 user?.providerData.contains(where: { $0.providerID == EmailAuthProviderID }) ?? false
 
+            // If user signs in for the first time, mark onboarding completed
             if self.isSignedIn && !ProgressTracker.shared.onboardingCompleted {
                 ProgressTracker.shared.markOnboardingCompleted()
             }
@@ -44,6 +47,7 @@ final class AuthViewModel: ObservableObject {
     }
 
     // MARK: - Email Auth
+
     func register(email: String, password: String) async -> Bool {
         isLoading = true
         errorMessage = nil
@@ -55,6 +59,7 @@ final class AuthViewModel: ObservableObject {
 
             print("✅ Registered user:", result.user.uid)
             return true
+
         } catch {
             errorMessage = error.localizedDescription
             return false
@@ -72,6 +77,7 @@ final class AuthViewModel: ObservableObject {
 
             print("✅ Signed in user:", result.user.uid)
             return true
+
         } catch {
             errorMessage = error.localizedDescription
             return false
@@ -79,16 +85,19 @@ final class AuthViewModel: ObservableObject {
     }
 
     // MARK: - Sign Out
+
     func signOut() {
         do {
             try Auth.auth().signOut()
             print("👋 Signed out")
+
         } catch {
             print("❌ Sign out failed:", error.localizedDescription)
         }
     }
 
     // MARK: - Delete Account
+
     func deleteAccount(
         password: String? = nil,
         onReAuthRequired: (() -> Void)? = nil
@@ -101,12 +110,15 @@ final class AuthViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
+
             if let password,
                let email = user.email {
+
                 let credential = EmailAuthProvider.credential(
                     withEmail: email,
                     password: password
                 )
+
                 try await user.reauthenticate(with: credential)
             }
 
@@ -116,42 +128,58 @@ final class AuthViewModel: ObservableObject {
                 .delete()
 
             try await user.delete()
+
             print("🔥 Account permanently deleted")
 
         } catch let error as NSError {
+
             if error.code == AuthErrorCode.requiresRecentLogin.rawValue {
+
                 onReAuthRequired?()
+
             } else {
+
                 errorMessage = error.localizedDescription
             }
         }
     }
 
     // MARK: - Reset Password
+
     func sendPasswordResetEmail() async -> Bool {
-        guard let email = Auth.auth().currentUser?.email else { return false }
+
+        guard let email = Auth.auth().currentUser?.email else {
+            return false
+        }
 
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
 
         do {
+
             try await Auth.auth().sendPasswordReset(withEmail: email)
+
             print("📧 Password reset email sent to \(email)")
             return true
+
         } catch {
+
             errorMessage = error.localizedDescription
             print("❌ Failed to send password reset email:", error.localizedDescription)
+
             return false
         }
     }
 
     // MARK: - Onboarding
+
     func completeOnboarding() {
         ProgressTracker.shared.markOnboardingCompleted()
     }
 
     // MARK: - Cleanup
+
     deinit {
         if let handle {
             Auth.auth().removeStateDidChangeListener(handle)

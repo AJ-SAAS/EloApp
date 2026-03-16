@@ -1,35 +1,5 @@
 import SwiftUI
 
-// MARK: - Interest Button
-struct InterestButton: View {
-    let title: String
-    let emoji: String
-    let isSelected: Bool
-    let canSelectMore: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 12) {
-                Text(emoji)
-                    .font(.system(size: 48))
-                Text(title)
-                    .font(.headline.bold())
-                    .foregroundColor(isSelected ? .white : .primary)
-                    .multilineTextAlignment(.center)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(isSelected ? Color.purple : Color.gray.opacity(0.1))
-            )
-        }
-        .disabled(!isSelected && !canSelectMore)
-    }
-}
-
-// MARK: - Question Interests View
 struct QuestionInterestsView: View {
     @ObservedObject var vm: OnboardingViewModel
     @State private var showMoreInterests = false
@@ -49,13 +19,9 @@ struct QuestionInterestsView: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-
             VStack(spacing: 30) {
+                Spacer().frame(height: 60)
 
-                Spacer()
-                    .frame(height: 60)
-
-                // Updated title to Apple-style serif font
                 Text("Please select your interests")
                     .font(.system(size: 36, weight: .regular, design: .serif))
                     .multilineTextAlignment(.center)
@@ -66,6 +32,7 @@ struct QuestionInterestsView: View {
                     .font(.title3)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 LazyVGrid(
                     columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())],
@@ -87,11 +54,15 @@ struct QuestionInterestsView: View {
                 Button("More interests") {
                     showMoreInterests = true
                 }
-                .font(.title2.bold())
-                .foregroundColor(.purple)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.eloTeal)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(Color.gray.opacity(0.15))
+                .background(Color.eloTeal.opacity(0.07))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.eloTeal.opacity(0.2), lineWidth: 1)
+                )
                 .cornerRadius(16)
                 .padding(.horizontal)
 
@@ -99,10 +70,7 @@ struct QuestionInterestsView: View {
             }
             .padding(.horizontal)
 
-            // Back button – safely positioned below notch
-            Button {
-                vm.previousPage()
-            } label: {
+            Button { vm.previousPage() } label: {
                 Image(systemName: "chevron.left")
                     .font(.title2.bold())
                     .foregroundColor(.primary)
@@ -120,14 +88,13 @@ struct QuestionInterestsView: View {
                         toggleInterest(interest)
                     } label: {
                         HStack {
-                            Text(emoji)
-                                .font(.system(size: 30))
-                            Text(interest)
-                                .font(.title2)
+                            Text(emoji).font(.system(size: 30))
+                            Text(interest).font(.title2)
+                                .fixedSize(horizontal: false, vertical: true)
                             Spacer()
                             if vm.selectedInterests.contains(interest) {
                                 Image(systemName: "checkmark")
-                                    .foregroundColor(.purple)
+                                    .foregroundColor(.eloTeal)
                                     .font(.title3.bold())
                             }
                         }
@@ -141,6 +108,7 @@ struct QuestionInterestsView: View {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Done") { showMoreInterests = false }
                             .font(.headline)
+                            .foregroundColor(.eloTeal)
                     }
                 }
             }
@@ -153,5 +121,40 @@ struct QuestionInterestsView: View {
         } else if vm.selectedInterests.count < 4 {
             vm.selectedInterests.insert(interest)
         }
+    }
+}
+
+struct InterestButton: View {
+    let title: String
+    let emoji: String
+    let isSelected: Bool
+    let canSelectMore: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 12) {
+                Text(emoji).font(.system(size: 48))
+                Text(title)
+                    .font(.headline.bold())
+                    .foregroundColor(isSelected ? .white : .primary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(isSelected ? Color.eloTeal : Color.eloTeal.opacity(0.07))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(
+                        isSelected ? Color.eloTeal : Color.eloTeal.opacity(0.15),
+                        lineWidth: 1
+                    )
+            )
+        }
+        .disabled(!isSelected && !canSelectMore)
     }
 }

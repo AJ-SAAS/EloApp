@@ -6,10 +6,8 @@ import UserNotifications
 @MainActor
 final class OnboardingViewModel: ObservableObject {
 
-    // MARK: - Navigation
     @Published var currentPage: OnboardingPage = .welcome
 
-    // MARK: - Personalization answers
     @Published var userName: String = ""
     @Published var shortTermGoals: Set<String> = []
     @Published var longTermGoal: String = ""
@@ -20,20 +18,20 @@ final class OnboardingViewModel: ObservableObject {
     @Published var dailyGoal: String = ""
     @Published var reminderTime: Date = Date()
 
-    // MARK: - UI state
     @Published var showExitConfirmation = false
+    @Published var isSubscribed: Bool = false
 
-    // MARK: - Pages (unique rawValue)
+    // MARK: - Onboarding Pages
     enum OnboardingPage: Int, CaseIterable, Hashable {
         case welcome
         case featureTutor
         case featureFeedback
         case featureProgress
-        case scientificMethod           // ✅ Added scientific method page
         case freeTrialToggle1
         case freeTrialInfo1
         case paywall1
         case questionName
+        case scientificMethod
         case questionShortTermGoals
         case questionLongTermGoals
         case goalsConfirmation
@@ -51,69 +49,87 @@ final class OnboardingViewModel: ObservableObject {
         case authSetup
     }
 
-    // MARK: - Navigation helpers
-
-    /// Moves to the next page while skipping deleted pages
+    // MARK: - Navigation
     func nextPage() {
+        hideKeyboard()
         withAnimation {
             var nextRaw = currentPage.rawValue + 1
-
-            while let candidate = OnboardingPage(rawValue: nextRaw),
-                  !isValidPage(candidate) {
+            while let candidate = OnboardingPage(rawValue: nextRaw) {
+                if isValidPage(candidate) { break }
                 nextRaw += 1
             }
-
             if let next = OnboardingPage(rawValue: nextRaw) {
                 currentPage = next
             }
         }
     }
 
-    /// Moves to the previous page
     func previousPage() {
+        hideKeyboard()
         withAnimation {
             var prevRaw = currentPage.rawValue - 1
-
-            while prevRaw >= 0,
-                  let candidate = OnboardingPage(rawValue: prevRaw),
-                  !isValidPage(candidate) {
+            while prevRaw >= 0, let candidate = OnboardingPage(rawValue: prevRaw) {
+                if isValidPage(candidate) { break }
                 prevRaw -= 1
             }
-
             if prevRaw >= 0, let prev = OnboardingPage(rawValue: prevRaw) {
                 currentPage = prev
             }
         }
     }
 
-    /// Skips paywalls if needed
     func skipPaywall() {
-        if currentPage == .paywall1 {
-            currentPage = .questionName
-        } else if currentPage == .paywall2 {
-            currentPage = .authSetup
+        // Only skip if user explicitly presses "X"
+        if currentPage == .paywall1 || currentPage == .paywall2 {
+            nextPage()
         }
     }
 
-    /// Marks onboarding complete
     func completeOnboarding() {
-        print("Onboarding completed")
+        ProgressTracker.shared.markOnboardingCompleted()
+        print("✅ Onboarding completed")
     }
 
-    /// Requests notification permission
     func requestNotificationPermission() async {
         let center = UNUserNotificationCenter.current()
         _ = try? await center.requestAuthorization(options: [.alert, .sound, .badge])
     }
 
-    // MARK: - Helpers
-
-    /// Checks if a page is valid (not deleted)
+    // MARK: - Page Validation
     private func isValidPage(_ page: OnboardingPage) -> Bool {
         switch page {
-        // deleted pages like .scratchWin or .claimReward would return false
+        case .paywall1,
+             .paywall2,
+             .freeTrialToggle1,
+             .freeTrialInfo1,
+             .freeTrialToggle2,
+             .freeTrialInfo2:
+            return !isSubscribed
         default:
             return true
         }
+    }
+
+    func isPaywall(_ page: OnboardingPage) -> Bool {
+        [
+            .paywall1,
+            .paywall2,
+            .freeTrialToggle1,
+            .freeTrialInfo1,
+            .freeTrialToggle2,
+            .freeTrialInfo2
+        ].contains(page)
+    }
+
+    // MARK: - Helpers
+    func hideKeyboard() {
+        #if canImport(UIKit)
+        UIApplication.shared.sendAction(
+            #selector(UIResponder.resignFirstResponder),
+            to: nil,
+            from: nil,
+            for: nil
+        )
+        #endif
     }
 }

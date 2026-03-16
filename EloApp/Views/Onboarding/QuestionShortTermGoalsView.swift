@@ -16,16 +16,15 @@ struct QuestionShortTermGoalsView: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            
             VStack(spacing: 30) {
                 Spacer().frame(height: 60)
-                
+
                 Text("What do you want to achieve with Elo English?")
                     .font(.system(size: 36, weight: .regular, design: .serif))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
                     .fixedSize(horizontal: false, vertical: true)
-                
+
                 ScrollView {
                     VStack(spacing: 12) {
                         ForEach(goalOptions, id: \.self) { goal in
@@ -40,7 +39,8 @@ struct QuestionShortTermGoalsView: View {
                                     Text(goal)
                                         .font(.system(size: 20, weight: .semibold))
                                         .frame(maxWidth: .infinity, alignment: .leading)
-                                    
+                                        .fixedSize(horizontal: false, vertical: true)
+
                                     if vm.shortTermGoals.contains(goal) {
                                         Image(systemName: "checkmark.circle.fill")
                                             .font(.system(size: 24))
@@ -50,23 +50,31 @@ struct QuestionShortTermGoalsView: View {
                                 .padding(.horizontal, 20)
                                 .background(
                                     RoundedRectangle(cornerRadius: 16)
-                                        .fill(vm.shortTermGoals.contains(goal) ? Color.purple : Color.gray.opacity(0.1))
+                                        .fill(vm.shortTermGoals.contains(goal)
+                                            ? Color.eloTeal
+                                            : Color.eloTeal.opacity(0.07))
                                 )
                                 .foregroundColor(vm.shortTermGoals.contains(goal) ? .white : .primary)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(
+                                            vm.shortTermGoals.contains(goal)
+                                                ? Color.eloTeal
+                                                : Color.eloTeal.opacity(0.15),
+                                            lineWidth: 1
+                                        )
+                                )
                             }
                         }
                     }
                     .padding(.horizontal)
                 }
-                
+
                 Spacer()
             }
             .padding(.horizontal)
-            
-            // Back button
-            Button {
-                vm.previousPage()
-            } label: {
+
+            Button { vm.previousPage() } label: {
                 Image(systemName: "chevron.left")
                     .font(.title2.bold())
                     .foregroundColor(.primary)
