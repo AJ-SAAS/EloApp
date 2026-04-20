@@ -108,8 +108,9 @@ struct PaywallView: View {
         VStack(spacing: 10) {
             if let packages = purchaseVM.offerings?.current?.availablePackages {
                 ForEach(packages, id: \.identifier) { package in
-                    let type: OfferType = package.storeProduct.productIdentifier.contains("lifetime") ? .lifetime : .weekly
-                    let subtitle = type == .lifetime ? "one-time payment" : "per week"
+                    let type: OfferType = package.storeProduct.productIdentifier.contains("yearly") ? .yearly : .weekly
+                    let subtitle = type == .yearly ? "per year" : "per week"
+                    
                     OfferCard(
                         title: package.storeProduct.localizedTitle,
                         price: package.storeProduct.localizedPriceString,
@@ -122,23 +123,24 @@ struct PaywallView: View {
                     )
                 }
             } else {
-                OfferCard(
-                    title: "Lifetime Access",
-                    price: "$17.99",
-                    subtitle: "one-time payment",
-                    offerType: .lifetime,
-                    isSelected: selectedOffer == .lifetime,
-                    onTap: { withAnimation(.easeInOut(duration: 0.18)) { selectedOffer = .lifetime } },
-                    accentColor: .eloTeal,
-                    textColor: .eloText
-                )
+                // fallback hardcoded offers
                 OfferCard(
                     title: "Weekly Premium",
-                    price: "$4.99",
+                    price: "$0.99",
                     subtitle: "per week",
                     offerType: .weekly,
                     isSelected: selectedOffer == .weekly,
                     onTap: { withAnimation(.easeInOut(duration: 0.18)) { selectedOffer = .weekly } },
+                    accentColor: .eloTeal,
+                    textColor: .eloText
+                )
+                OfferCard(
+                    title: "Yearly Premium",
+                    price: "$39.99",
+                    subtitle: "per year",
+                    offerType: .yearly,
+                    isSelected: selectedOffer == .yearly,
+                    onTap: { withAnimation(.easeInOut(duration: 0.18)) { selectedOffer = .yearly } },
                     accentColor: .eloTeal,
                     textColor: .eloText
                 )
@@ -164,7 +166,7 @@ struct PaywallView: View {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
-                        Text(selectedOffer == .weekly ? "Start learning for free →" : "Get lifetime access →")
+                        Text(selectedOffer == .weekly ? "Start learning for free →" : "Get yearly access →")
                             .font(.headline)
                     }
                 }
@@ -224,15 +226,15 @@ struct PaywallView: View {
         defer { isProcessingPurchase = false }
         purchaseError = nil
 
-        let package = selectedOffer == .lifetime
-            ? packages.first { $0.storeProduct.productIdentifier.contains("lifetime") }
+        let package = selectedOffer == .yearly
+            ? packages.first { $0.storeProduct.productIdentifier.contains("yearly") }
             : packages.first { $0.storeProduct.productIdentifier.contains("weekly") }
 
         if let package {
             let success = await purchaseVM.purchase(package: package)
             if success {
                 ProgressTracker.shared.hasPremiumAccess = true
-                vm.isSubscribed = true  // ✅ tells isValidPage() to skip all remaining paywall pages
+                vm.isSubscribed = true
                 vm.skipPaywall()
             } else {
                 purchaseError = "Purchase failed. Try again."
@@ -249,7 +251,7 @@ struct PaywallView: View {
         await purchaseVM.restorePurchases()
         if purchaseVM.hasPremiumAccess() {
             ProgressTracker.shared.hasPremiumAccess = true
-            vm.isSubscribed = true  // ✅ same fix for restore
+            vm.isSubscribed = true
             vm.skipPaywall()
         } else {
             purchaseError = "No active purchases found."
@@ -259,8 +261,8 @@ struct PaywallView: View {
 
 // MARK: - Offer Type
 enum OfferType {
-    case lifetime
     case weekly
+    case yearly
 }
 
 // MARK: - Subviews
@@ -300,7 +302,7 @@ struct OfferCard: View {
     private var badgeLabel: String? {
         switch offerType {
         case .weekly:   return "7 days free"
-        case .lifetime: return "Best value"
+        case .yearly: return "Best value"
         }
     }
 
@@ -393,8 +395,8 @@ struct FreeTrialDueView: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             Spacer()
-            if selectedOffer == .lifetime {
-                Text("$17.99")
+            if selectedOffer == .yearly {
+                Text("$39.99")
                     .font(.subheadline.weight(.semibold))
                     .foregroundColor(primaryColor)
             } else {

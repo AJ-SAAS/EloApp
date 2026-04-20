@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 http://docs.oasis-open.org/xliff/v1.2/os/xliff-core-1.2-strict.xsd">
+  <file original="EloApp/Services/EloApp-InfoPlist.xcstrings" source-language="en" target-language="pt-BR" datatype="plaintext">
+    <header>
+      <tool tool-id="com.apple.dt.xcode" tool-name="Xcode" tool-version="26.3" build-num="17C529"/>
+    </header>
+    <body>
+      <trans-unit id="CFBundleDisplayName" xml:space="preserve">
+        <source>Elo</source>
+        <note>Bundle display name</note>
+      </trans-unit>
+      <trans-unit id="CFBundleName" xml:space="preserve">
+        <source>EloApp</source>
+        <note>Bundle name</note>
+      </trans-unit>
+      <trans-unit id="NSMicrophoneUsageDescription" xml:space="preserve">
+        <source>We use the microphone so you can practice pronouncing words and sentences aloud. Audio is not stored.</source>
+        <note>Privacy - Microphone Usage Description</note>
+      </trans-unit>
+      <trans-unit id="NSSpeechRecognitionUsageDescription" xml:space="preserve">
+        <source>This app uses on-device speech recognition to check your pronunciation.</source>
+        <note>Privacy - Speech Recognition Usage Description</note>
+      </trans-unit>
+    </body>
+  </file>
+  <file original="EloApp/Services/Localizable.xcstrings" source-language="en" target-language="pt-BR" datatype="plaintext">
+    <header>
+      <tool tool-id="com.apple.dt.xcode" tool-name="Xcode" tool-version="26.3" build-num="17C529"/>
+    </header>
+    <body>
+      <trans-unit id="$0.00" xml:space="preserve">
+        <source>$0.00</source>
+        <note from="auto-generated">The price of a free trial, displayed in the "Due today" section of the view.</note>
+      </trans-unit>
+      <trans-unit id="$39.99" xml:space="preserve">
+        <source>$39.99</source>
+        <note from="auto-generated">A label displayed below the price of a free trial.</note>
+      </trans-unit>
+      <trans-unit id="%lld" xml:space="preserve">
+        <source>%lld</source>
+        <note from="auto-generated">A text view displaying the current streak of days in a row that the user has successfully logged practice.</note>
+      </trans-unit>
+      <trans-unit id="%lld Days" xml:space="preserve">
+        <source>%lld Days</source>
+        <note from="auto-generated">A title within the streak card displaying the number of consecutive days the user has taken their medication.</note>
+      </trans-unit>
+      <trans-unit id="%lld%% vs last week" xml:space="preserve">
+        <source>%lld%% vs last week</source>
+        <note from="auto-generated">A text label indicating a percentage increase or decrease in a value compared to the previous week. The argument is the percentage change.</note>
+      </trans-unit>
+      <trans-unit id="+%lld XP" xml:space="preserve">
+        <source>+%lld XP</source>
+        <note from="auto-generated">A label displaying the number of XP points earned for completing a daily goal. The argument is the number of XP points gained.</note>
+      </trans-unit>
+      <trans-unit id="+%lld%% vs last week" xml:space="preserve">
+        <source>+%lld%% vs last week</source>
+        <note from="auto-generated">A text view displaying the weekly growth percentage of a user's progress in the app. The text shows a positive sign followed by the percentage value, followed by "% vs last week".</note>
+      </trans-unit>
+      <trans-unit id="7-Day Free Trial Enabled" xml:space="preserve">
+        <source>7-Day Free Trial Enabled</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Achievements" xml:space="preserve">
+        <source>Achievements</source>
+        <note from="auto-generated">A section header that lists the user's achievements.</note>
+      </trans-unit>
+      <trans-unit id="Allow emails and notifications to get a reminder." xml:space="preserve">
+        <source>Allow emails and notifications to get a reminder.</source>
+        <note from="auto-generated">A description below the trial timeline that explains the purpose of allowing emails and notifications.</note>
+      </trans-unit>
+      <trans-unit id="Allow notifications not to miss your practice time." xml:space="preserve">
+        <source>Allow notifications not to miss your practice time.</source>
+        <note from="auto-generated">A description of the benefits of allowing notifications to remind users of their training time.</note>
+      </trans-unit>
+      <trans-unit id="Already have an account? Sign In" xml:space="preserve">
+        <source>Already have an account? Sign In</source>
+        <note from="auto-generated">A link that allows a user to sign in if they already have an account.</note>
+      </trans-unit>
+      <trans-unit id="Awesome, great to meet you, %@!" xml:space="preserve">
+        <source>Awesome, great to meet you, %@!</source>
+        <note from="auto-generated">A greeting at the top of the checkout view, including the user's name.</note>
+      </trans-unit>
+      <trans-unit id="Based on real science. Tap any link to learn more." xml:space="preserve">
+        <source>Based on real science. Tap any link to learn more.</source>
+        <note from="auto-generated">A footer text that explains the credibility of the scientific method view. It also includes a call to action to learn more.</note>
+      </trans-unit>
+      <trans-unit id="Boost your language skills with Elo effortlessly anytime, anywhere." xml:space="preserve">
+        <source>Boost your language skills with Elo effortlessly anytime, anywhere.</source>
+        <note from="auto-generated">A description of the app's features, emphasizing its ease of use and effectiveness in language learning.</note>
+      </trans-unit>
+      <trans-unit id="Confirm Password" xml:space="preserve">
+        <source>Confirm Password</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Continue" xml:space="preserve">
+        <source>Continue</source>
+        <note from="auto-generated">The text on a button that says "Continue".</note>
+      </trans-unit>
+      <trans-unit id="Create Account" xml:space="preserve">
+        <source>Create Account</source>
+        <note from="auto-generated">A button label for creating a new account.</note>
+      </trans-unit>
+      <trans-unit id="Daily Streak" xml:space="preserve">
+        <source>Daily Streak</source>
+        <note from="auto-generated">A title for the daily streak section of the view.</note>
+      </trans-unit>
+      <trans-unit id="Daily goal completed" xml:space="preserve">
+        <source>Daily goal completed</source>
+        <note from="auto-generated">A description of the action that completes a user's daily goal.</note>
+      </trans-unit>
+      <trans-unit id="Days Streak" xml:space="preserve">
+        <source>Days Streak</source>
+        <note from="auto-generated">A label displayed above the user's current streak of days practicing.</note>
+      </trans-unit>
+      <trans-unit id="Definition: %@" xml:space="preserve">
+        <source>Definition: %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Did you know…" xml:space="preserve">
+        <source>Did you know…</source>
+        <note from="auto-generated">A question displayed above the list of fun facts.</note>
+      </trans-unit>
+      <trans-unit id="Don't have an account? Sign Up" xml:space="preserve">
+        <source>Don't have an account? Sign Up</source>
+        <note from="auto-generated">A button label that directs users to sign up if they don't have an account.</note>
+      </trans-unit>
+      <trans-unit id="Done" xml:space="preserve">
+        <source>Done</source>
+        <note from="auto-generated">The text for a button that, when pressed, dismisses a sheet. In this context, it dismisses a sheet that lists more interests.</note>
+      </trans-unit>
+      <trans-unit id="Due today" xml:space="preserve">
+        <source>Due today</source>
+        <note from="auto-generated">A label indicating that the free trial is due today.</note>
+      </trans-unit>
+      <trans-unit id="ELO PREMIUM" xml:space="preserve">
+        <source>ELO PREMIUM</source>
+        <note from="auto-generated">The title of the premium subscription.</note>
+      </trans-unit>
+      <trans-unit id="Elo will call you by this name." xml:space="preserve">
+        <source>Elo will call you by this name.</source>
+        <note from="auto-generated">A description below the text field where the user can enter their name.</note>
+      </trans-unit>
+      <trans-unit id="Email" xml:space="preserve">
+        <source>Email</source>
+        <note from="auto-generated">A label for the email field in the authentication view.</note>
+      </trans-unit>
+      <trans-unit id="Enable Microphone in Settings" xml:space="preserve">
+        <source>Enable Microphone in Settings</source>
+        <note from="auto-generated">A button label that translates to "Enable Microphone in Settings".</note>
+      </trans-unit>
+      <trans-unit id="Enable microphone access in Settings to practice speaking." xml:space="preserve">
+        <source>Enable microphone access in Settings to practice speaking.</source>
+        <note from="auto-generated">A description of how to enable microphone access in settings to practice speaking.</note>
+      </trans-unit>
+      <trans-unit id="Enter your name" xml:space="preserve">
+        <source>Enter your name</source>
+        <note from="auto-generated">A label for the text field where the user enters their name.</note>
+      </trans-unit>
+      <trans-unit id="Get My Plan" xml:space="preserve">
+        <source>Get My Plan</source>
+        <note from="auto-generated">The text on a button that, when pressed, directs the user to view their personalized learning plan.</note>
+      </trans-unit>
+      <trans-unit id="Get yearly access →" xml:space="preserve">
+        <source>Get yearly access →</source>
+        <note from="auto-generated">A call-to-action text that appears below the "Start learning for free →" button in the paywall.</note>
+      </trans-unit>
+      <trans-unit id="Hold your first confident English sentence in just 7 days, using our science-backed method." xml:space="preserve">
+        <source>Hold your first confident English sentence in just 7 days, using our science-backed method.</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="How you will learn every word." xml:space="preserve">
+        <source>How you will learn every word.</source>
+        <note from="auto-generated">A subtitle displayed below the main title of the scientific method view.</note>
+      </trans-unit>
+      <trans-unit id="I will remind you of your training time every day" xml:space="preserve">
+        <source>I will remind you of your training time every day</source>
+        <note from="auto-generated">A description of how the app will remind users of their training time.</note>
+      </trans-unit>
+      <trans-unit id="In which areas would you like to improve your English?" xml:space="preserve">
+        <source>In which areas would you like to improve your English?</source>
+        <note from="auto-generated">A question displayed to the user about their English improvement goals.</note>
+      </trans-unit>
+      <trans-unit id="Keep the streak alive →" xml:space="preserve">
+        <source>Keep the streak alive →</source>
+        <note from="auto-generated">A button label that encourages the user to continue their streak.</note>
+      </trans-unit>
+      <trans-unit id="LEVEL UP 🎉" xml:space="preserve">
+        <source>LEVEL UP 🎉</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Let's Go" xml:space="preserve">
+        <source>Let's Go</source>
+        <note from="auto-generated">The text on a button that, when pressed, navigates to the next screen in an onboarding flow.</note>
+      </trans-unit>
+      <trans-unit id="Level %lld" xml:space="preserve">
+        <source>Level %lld</source>
+        <note from="auto-generated">A label displaying the user's current level. The argument is the user's current level.</note>
+      </trans-unit>
+      <trans-unit id="Log in" xml:space="preserve">
+        <source>Log in</source>
+        <note from="auto-generated">A button that allows a user to log in to the app.</note>
+      </trans-unit>
+      <trans-unit id="Many have started with the same goals — and Elo English got them there." xml:space="preserve">
+        <source>Many have started with the same goals — and Elo English got them there.</source>
+        <note from="auto-generated">A paragraph describing the success stories of other users.</note>
+      </trans-unit>
+      <trans-unit id="Master English&#10;word by word" xml:space="preserve">
+        <source>Master English
+word by word</source>
+        <note from="auto-generated">A description of the main feature of the app.</note>
+      </trans-unit>
+      <trans-unit id="Microphone Disabled" xml:space="preserve">
+        <source>Microphone Disabled</source>
+        <note from="auto-generated">A message displayed when the user's microphone access is disabled.</note>
+      </trans-unit>
+      <trans-unit id="More Interests" xml:space="preserve">
+        <source>More Interests</source>
+        <note from="auto-generated">The title of a sheet that lists additional interests.</note>
+      </trans-unit>
+      <trans-unit id="More interests" xml:space="preserve">
+        <source>More interests</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="More languages" xml:space="preserve">
+        <source>More languages</source>
+        <note from="auto-generated">A button that, when pressed, expands the list of available languages.</note>
+      </trans-unit>
+      <trans-unit id="Next" xml:space="preserve">
+        <source>Next</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="No commitment · cancel anytime" xml:space="preserve">
+        <source>No commitment · cancel anytime</source>
+        <note from="auto-generated">A footer text below the "Get yearly access →" button in the paywall.</note>
+      </trans-unit>
+      <trans-unit id="Password" xml:space="preserve">
+        <source>Password</source>
+        <note from="auto-generated">A label for a password field.</note>
+      </trans-unit>
+      <trans-unit id="Personalizing your learning plan…" xml:space="preserve">
+        <source>Personalizing your learning plan…</source>
+        <note from="auto-generated">A description of the process of customizing a user's learning plan.</note>
+      </trans-unit>
+      <trans-unit id="Pick a time of the day to start your practice every day" xml:space="preserve">
+        <source>Pick a time of the day to start your practice every day</source>
+        <note from="auto-generated">A description explaining the purpose of the view.</note>
+      </trans-unit>
+      <trans-unit id="Please select your interests" xml:space="preserve">
+        <source>Please select your interests</source>
+        <note from="auto-generated">A prompt instructing the user to select their interests.</note>
+      </trans-unit>
+      <trans-unit id="Privacy policy" xml:space="preserve">
+        <source>Privacy policy</source>
+        <note from="auto-generated">A link to the privacy policy of the app.</note>
+      </trans-unit>
+      <trans-unit id="Progress" xml:space="preserve">
+        <source>Progress</source>
+        <note from="auto-generated">A label displayed as the title for the "Progress" tab in the main tab view.</note>
+      </trans-unit>
+      <trans-unit id="Reminder Time" xml:space="preserve">
+        <source>Reminder Time</source>
+        <note from="auto-generated">A label describing the time picker in the view.</note>
+      </trans-unit>
+      <trans-unit id="Restore" xml:space="preserve">
+        <source>Restore</source>
+        <note from="auto-generated">A button that allows users to restore purchases.</note>
+      </trans-unit>
+      <trans-unit id="SCIENCE-BACKED" xml:space="preserve">
+        <source>SCIENCE-BACKED</source>
+        <note from="auto-generated">A badge indicating that the content is scientifically backed.</note>
+      </trans-unit>
+      <trans-unit id="STEP %lld" xml:space="preserve">
+        <source>STEP %lld</source>
+        <note from="auto-generated">A badge displaying the step number.</note>
+      </trans-unit>
+      <trans-unit id="Select Language" xml:space="preserve">
+        <source>Select Language</source>
+        <note from="auto-generated">The title of a sheet that lists all available languages.</note>
+      </trans-unit>
+      <trans-unit id="Settings" xml:space="preserve">
+        <source>Settings</source>
+        <note from="auto-generated">A label for the settings tab in the main tab view.</note>
+      </trans-unit>
+      <trans-unit id="Show Hint" xml:space="preserve">
+        <source>Show Hint</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="Show Plans" xml:space="preserve">
+        <source>Show Plans</source>
+        <note from="auto-generated">A button that takes the user to a view showing all available learning plans.</note>
+      </trans-unit>
+      <trans-unit id="Sign In" xml:space="preserve">
+        <source>Sign In</source>
+        <note from="auto-generated">A button that allows a user to sign up or sign in.</note>
+      </trans-unit>
+      <trans-unit id="Sign Up" xml:space="preserve">
+        <source>Sign Up</source>
+        <note from="auto-generated">A button that allows a user to sign up or sign in.</note>
+      </trans-unit>
+      <trans-unit id="Start learning for free →" xml:space="preserve">
+        <source>Start learning for free →</source>
+        <note from="auto-generated">A button label that appears when the user selects the weekly premium offer.</note>
+      </trans-unit>
+      <trans-unit id="Terms of use" xml:space="preserve">
+        <source>Terms of use</source>
+        <note from="auto-generated">A link to the terms of use.</note>
+      </trans-unit>
+      <trans-unit id="The Elo 3-Stage&#10;Speaking Loop" xml:space="preserve">
+        <source>The Elo 3-Stage
+Speaking Loop</source>
+        <note from="auto-generated">The title of the third section in the "Scientific Method" view.</note>
+      </trans-unit>
+      <trans-unit id="Today" xml:space="preserve">
+        <source>Today</source>
+        <note from="auto-generated">A tab label for the "Today" tab in the main tab view.</note>
+      </trans-unit>
+      <trans-unit id="Translate to French 🇫🇷" xml:space="preserve">
+        <source>Translate to French 🇫🇷</source>
+        <note from="auto-generated">A button that translates text to French when pressed.</note>
+      </trans-unit>
+      <trans-unit id="Try again — speak clearly" xml:space="preserve">
+        <source>Try again — speak clearly</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="WORD MASTERED" xml:space="preserve">
+        <source>WORD MASTERED</source>
+        <note from="auto-generated">The title of the screen that appears when a user successfully completes a daily word challenge.</note>
+      </trans-unit>
+      <trans-unit id="Welcome Back" xml:space="preserve">
+        <source>Welcome Back</source>
+        <note from="auto-generated">A label displayed below the "Sign In" button in the authentication view.</note>
+      </trans-unit>
+      <trans-unit id="Welcome to Elo!" xml:space="preserve">
+        <source>Welcome to Elo!</source>
+        <note from="auto-generated">The title of the welcome screen.</note>
+      </trans-unit>
+      <trans-unit id="What are your long-term goals for learning English?" xml:space="preserve">
+        <source>What are your long-term goals for learning English?</source>
+        <note from="auto-generated">A question displayed to the user about their long-term learning goals.</note>
+      </trans-unit>
+      <trans-unit id="What do you want to achieve with Elo English?" xml:space="preserve">
+        <source>What do you want to achieve with Elo English?</source>
+        <note from="auto-generated">A question displayed to the user about their short-term language goals.</note>
+      </trans-unit>
+      <trans-unit id="What is your level of English?" xml:space="preserve">
+        <source>What is your level of English?</source>
+        <note from="auto-generated">A question displayed to the user asking them to select their English proficiency level.</note>
+      </trans-unit>
+      <trans-unit id="What should we call you?" xml:space="preserve">
+        <source>What should we call you?</source>
+        <note from="auto-generated">A prompt asking the user what name they would like to be called by.</note>
+      </trans-unit>
+      <trans-unit id="What's your daily practice goal?" xml:space="preserve">
+        <source>What's your daily practice goal?</source>
+        <note from="auto-generated">A question displayed to the user about their daily exercise goal.</note>
+      </trans-unit>
+      <trans-unit id="What's your native language?" xml:space="preserve">
+        <source>What's your native language?</source>
+        <note from="auto-generated">A question displayed to the user about their native language.</note>
+      </trans-unit>
+      <trans-unit id="XP: %lld" xml:space="preserve">
+        <source>XP: %lld</source>
+        <note from="auto-generated">A label displaying the user's current XP score. The argument is the user's current XP score.</note>
+      </trans-unit>
+      <trans-unit id="You can choose up to 4" xml:space="preserve">
+        <source>You can choose up to 4</source>
+        <note from="auto-generated">A description below the list of interests, explaining that they can only select up to 4.</note>
+      </trans-unit>
+      <trans-unit id="You said:" xml:space="preserve">
+        <source>You said:</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="You're in the right place!" xml:space="preserve">
+        <source>You're in the right place!</source>
+        <note from="auto-generated">A title displayed in the "Goals Confirmation" view.</note>
+      </trans-unit>
+      <trans-unit id="Your 7-day free trial" xml:space="preserve">
+        <source>Your 7-day free trial</source>
+        <note from="auto-generated">A title describing the user's free trial period.</note>
+      </trans-unit>
+      <trans-unit id="then" xml:space="preserve">
+        <source>then</source>
+        <note from="auto-generated">A label displayed as a step separator in a stepper interface.</note>
+      </trans-unit>
+      <trans-unit id="· free for 7 days" xml:space="preserve">
+        <source>· free for 7 days</source>
+        <note from="auto-generated">A description of a free trial period for a limited time.</note>
+      </trans-unit>
+      <trans-unit id="“%@”" xml:space="preserve">
+        <source>“%@”</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="✅" xml:space="preserve">
+        <source>✅</source>
+        <note from="auto-generated">A checkmark emoji used to indicate that an achievement is unlocked.</note>
+      </trans-unit>
+      <trans-unit id="🎉 Level Up! Now Lv. %lld" xml:space="preserve">
+        <source>🎉 Level Up! Now Lv. %lld</source>
+        <note from="auto-generated">A celebratory text that appears when a user levels up in the app. The argument is the current level of the user.</note>
+      </trans-unit>
+      <trans-unit id="👑 %@" xml:space="preserve">
+        <source>👑 %@</source>
+        <note/>
+      </trans-unit>
+      <trans-unit id="🔒" xml:space="preserve">
+        <source>🔒</source>
+        <note from="auto-generated">An unlocked badge icon.</note>
+      </trans-unit>
+      <trans-unit id="🔥 %lld-day streak" xml:space="preserve">
+        <source>🔥 %lld-day streak</source>
+        <note from="auto-generated">A text label showing the duration of the current streak. The argument is the current streak count.</note>
+      </trans-unit>
+      <trans-unit id="🔥 Streak: %lld" xml:space="preserve">
+        <source>🔥 Streak: %lld</source>
+        <note from="auto-generated">A label displaying the current streak count. The argument is the current streak count.</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

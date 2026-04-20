@@ -33,6 +33,7 @@ final class PurchaseViewModel: ObservableObject {
     func purchase(package: Package) async -> Bool {
         do {
             let result = try await Purchases.shared.purchase(package: package)
+            // Only check premium_access entitlement (weekly or yearly)
             if result.customerInfo.entitlements["premium_access"]?.isActive == true {
                 self.activeEntitlements = Set(result.customerInfo.entitlements.active.keys)
                 print("Purchase successful!")
@@ -51,6 +52,7 @@ final class PurchaseViewModel: ObservableObject {
     func restorePurchases() async {
         do {
             let customerInfo = try await Purchases.shared.restorePurchases()
+            // Only track premium_access entitlement
             self.activeEntitlements = Set(customerInfo.entitlements.active.keys)
             print("Restored successfully")
         } catch {
@@ -67,7 +69,7 @@ final class PurchaseViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Check if user has premium
+    // MARK: - Check if user has premium (weekly or yearly)
     func hasPremiumAccess() -> Bool {
         activeEntitlements.contains("premium_access")
     }

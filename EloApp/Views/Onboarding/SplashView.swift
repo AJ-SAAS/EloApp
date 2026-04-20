@@ -6,22 +6,20 @@ struct SplashView: View {
     @State private var scaleLogo = 0.5
     @State private var opacity = 1.0
     
-    // Get authVM from the app level (injected in EloAppApp)
     @EnvironmentObject var authVM: AuthViewModel
 
     var body: some View {
         ZStack {
             if isActive {
                 RootView()
-                    .environmentObject(authVM)  // Critical: pass it down!
+                    .environmentObject(authVM)
                     .transition(.opacity)
             }
             
             if !isActive {
-                Color.white
-                    .ignoresSafeArea()
+                Color.white.ignoresSafeArea()
                 
-                Image("elologo")
+                Image("elologo1")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 180, height: 180)
@@ -41,6 +39,7 @@ struct SplashView: View {
                 scaleLogo = 1.0
             }
             
+            // After splash animation → go to RootView (which will show LanguageSelectionView if needed)
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                 withAnimation(.easeInOut(duration: 0.6)) {
                     opacity = 0.0
